@@ -9,7 +9,8 @@ export class User {
   @Prop({
     type: Types.ObjectId,
     required: [true, 'User required'],
-    unique: [true, 'User Already made']
+    unique: [true, 'User Already made'],
+    refPath: 'role'
   })
   userId: ObjectId;
 
@@ -20,7 +21,8 @@ export class User {
   email: string;
   
   @Prop({
-    required: [true, 'Password Information required']
+    required: [true, 'Password Information required'],
+    select : false
   })
   password: string;
 

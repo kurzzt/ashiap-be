@@ -11,6 +11,7 @@ import { UpdatePKLDto, UpdateSkripsiDto } from './dto/update-pkl-skripsi.dto';
 import { RolesGuard } from 'src/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { ROLE } from 'utils/global.enum';
+import { UpdateMhsDto } from './dto/update-mhs.dto';
 
 @Controller('mhs')
 @UseGuards(RolesGuard)
@@ -46,9 +47,19 @@ export class MhsController {
   //   return this.mhsService.bulkDataMhs(file)
   // }
 
+  @Put(':id')
+  @Roles(ROLE.MHS)
+  @ResponseMessage('Successfully Update Data Mahasiswa')
+  async updateMhs(
+    @Param('id') id: string,
+    @Body() body: UpdateMhsDto
+  ) {
+    return this.mhsService.updateMhs(id, body)
+  }
+
   @Get()
   @Roles(ROLE.DEPT, ROLE.DSN)
-  @ResponseMessage('Successfully Get AllMahasiswa')
+  @ResponseMessage('Successfully Get All Mahasiswa')
   async getAllMhs(
     @Query() q: ExpressQuery
   ) {
@@ -122,95 +133,41 @@ export class MhsController {
   @Put(':id/irs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data IRS')
-  @UseInterceptors(FileInterceptor('file'))
   async updateIRSMhs(
     @Param('id') id: string,
     @Body() data: UpdateIRSDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: 'png',
-        })
-        .addMaxSizeValidator({
-          maxSize: 10000000
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-        }),
-    ) file: Express.Multer.File
   ) {
-    return this.mhsService.updateIRS(id, data, file)
+    return this.mhsService.updateIRS(id, data)
   }
 
   @Put(':id/khs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data KHS')
-  @UseInterceptors(FileInterceptor('file'))
   async updateKHSMhs(
     @Param('id') id: string,
     @Body() data: UpdateKHSDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: 'png',
-        })
-        .addMaxSizeValidator({
-          maxSize: 10000000
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY
-        }),
-    ) file: Express.Multer.File
   ) {
-    return this.mhsService.updateKHS(id, data, file)
+    return this.mhsService.updateKHS(id, data)
   }
 
   @Put(':id/pkl')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data PKL')
-  @UseInterceptors(FileInterceptor('file'))
   async updatePKLMhs(
     @Param('id') id: string,
-    @Body() data: UpdatePKLDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: '.png',
-        })
-        .addMaxSizeValidator({
-          maxSize: 10000000
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          fileIsRequired: false
-        }),
-    ) file: Express.Multer.File,
+    @Body() data: UpdatePKLDto
   ) {
-    return this.mhsService.updatePKL(id, file, data);
+    return this.mhsService.updatePKL(id, data);
   }
 
   @Put(':id/skripsi')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data Skripsi')
-  @UseInterceptors(FileInterceptor('file'))
   async updateSkripsiMhs(
     @Param('id') id: string,
-    @Body() data: UpdateSkripsiDto,
-    @UploadedFile(
-      new ParseFilePipeBuilder()
-        .addFileTypeValidator({
-          fileType: '.png',
-        })
-        .addMaxSizeValidator({
-          maxSize: 10000000
-        })
-        .build({
-          errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-          fileIsRequired: false
-        }),
-    ) file: Express.Multer.File,
+    @Body() data: UpdateSkripsiDto
   ){
-    return this.mhsService.updateSkripsi(id, file, data)
+    return this.mhsService.updateSkripsi(id, data)
   }
 
   @Delete(':id')

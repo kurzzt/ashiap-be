@@ -1,16 +1,17 @@
-import { BadRequestException, Injectable, NotFoundException, UnauthorizedException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { User } from './schemas/user.schema';
-import { Model, ObjectId, isValidObjectId } from 'mongoose';
 import { faker } from '@faker-js/faker';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
-import { secDB } from './schemas/secDB.schema';
+import { Query } from 'express-serve-static-core';
+import { Model, Types } from 'mongoose';
 import { AdmService } from 'src/adm/adm.service';
-import { DeptService } from './../dept/dept.service';
-import { Types } from 'mongoose';
-import { ROLE } from 'utils/global.enum';
 import { flattenObject } from 'utils/common';
+import { genParam } from 'utils/filter';
+import { ROLE } from 'utils/global.enum';
+import { DeptService } from './../dept/dept.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { secDB } from './schemas/secDB.schema';
+import { User } from './schemas/user.schema';
 var mongoose = require('mongoose');
 
 @Injectable()
@@ -94,26 +95,22 @@ export class UserService {
     }
   }
 
-  async findAlluser() {
-    const users = await this.userModel.find({}, '-password -__v');
+  async findAlluser(q: Query) {
+    const filter: Record<string, any> = {
+      role : String,
+      search : ['email']
+    }
 
-    const query = await Promise.all(users.map(async (user) => {
-      return await this.userModel.populate(
-        user,
-        {
-          path: 'userId',
-          model: `${user.role}`,
-          select: 'name _id'
-        }
-      );
-    }));
+    const { limit, skip, params } = genParam(q, filter)
+    const count = await this.userModel.countDocuments()
+    const query = await this.userModel.find({ ...params }, '-__v').populate('userId', 'name _id').limit(limit).skip(skip)
     const response = query.map(obj => flattenObject(obj))
-    return response;
+    return { total: count, totalPage: Math.ceil(count / limit), data: response }
   }
 
 
   async findUserById(id: string) {
-    const user = await this.userModel.findById(id, '-password -__v')
+    const user = await this.userModel.findById(id, '-__v')
     if (!user) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
     const query = await this.userModel.populate(
@@ -160,8 +157,9 @@ export class UserService {
     return response
   }
 
-  async findByEmail(email: string){
-    return await this.userModel.findOne({ email })
+  async findByEmail(email: string): Promise<any>{
+    const query = await this.userModel.findOne({ email }, '+password').populate('userId', 'name _id')
+    return flattenObject(query)
   }
 
   async findUser(id: string){

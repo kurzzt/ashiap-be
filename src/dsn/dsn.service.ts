@@ -5,8 +5,9 @@ import { Model } from 'mongoose';
 import { CreateDsnDto } from './dto/create-dsn.dto';
 import { UserService } from 'src/user/user.service';
 import { faker } from '@faker-js/faker';
+import { Query } from 'express-serve-static-core';
+import { genParam } from 'utils/filter';
 // import { MhsService } from 'src/mhs/mhs.service';
-// var ObjectId = require('mongoose').ObjectId;
 
 @Injectable()
 export class DsnService {
@@ -41,9 +42,19 @@ export class DsnService {
     }
   }
 
-  async findAllDsn(): Promise<DSN[]> {
-    const response = await this.dsnModel.find({}, '_id nip name position eduLevel jobStat active createdAt')
-    return response
+  async findAllDsn(q: Query) {
+    const filter: Record<string, any> = {
+      position : String,
+      eduLevel : String, 
+      jobStat : String,
+      active: Boolean,
+      search : ['name','nip']
+    }
+
+    const { limit, skip, params } = genParam(q, filter)
+    const count = await this.dsnModel.countDocuments()
+    const response = await this.dsnModel.find({ ...params }, 'nip name position eduLevel jobStat active createdAt').limit(limit).skip(skip)
+    return { total: count, totalPage: Math.ceil(count / limit), data: response }
   }
 
   async findDsnById(id: string): Promise<DSN>{

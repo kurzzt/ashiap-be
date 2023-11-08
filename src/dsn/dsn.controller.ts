@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, UseGuards, UseInterceptors, Query } from '@nestjs/common';
 import { CreateDsnDto } from './dto/create-dsn.dto';
 import { DsnService } from './dsn.service';
 import { DSN } from './schemas/dsn.schema';
@@ -7,6 +7,7 @@ import { TransformInterceptor } from 'utils/response.interceptor';
 import { RolesGuard } from 'src/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { ROLE } from 'utils/global.enum';
+import { Query as ExpressQuery } from 'express-serve-static-core';
 
 @Controller('dsn')
 @UseGuards(RolesGuard)
@@ -26,8 +27,10 @@ export class DsnController {
   @Get()
   @Roles(ROLE.DEPT)
   @ResponseMessage('Successfully Get All Dosen')
-  async getAllDsn(): Promise<DSN[]> {
-    return this.dsnService.findAllDsn()
+  async getAllDsn(
+    @Query() q: ExpressQuery
+  ) {
+    return this.dsnService.findAllDsn(q)
   }
 
   @Get(':id')

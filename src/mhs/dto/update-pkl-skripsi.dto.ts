@@ -1,34 +1,39 @@
-import { IsBoolean, IsNotEmpty, IsNumber, Max, Min, ValidateIf } from "class-validator";
-import { Transform, Type } from "class-transformer";
+import { IsBoolean, IsNotEmpty, IsNumber, IsUrl, Max, Min, ValidateIf } from "class-validator";
 
 export class UpdatePKLDto {
-  // @Type(() => Boolean)
-  @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
+  // @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
   @IsNotEmpty()
   @IsBoolean()
   readonly passed: boolean
   
   @ValidateIf(o => o.passed == true)
-  @Type(() => Number)
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
   @Max(100)
   readonly nilai: number
+
+  @ValidateIf(o => o.passed == true)
+  @IsNotEmpty()
+  @IsUrl()
+  readonly fileURL: string
 }
 
 export class UpdateSkripsiDto {
-  // @Type(() => Boolean)
-  @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
+  // @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
   @IsNotEmpty()
   @IsBoolean()
   readonly passed: boolean
   
   @ValidateIf(o => o.passed == true)
-  @Type(() => Number)
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
   @Max(100)
   readonly nilai: number
+
+  @ValidateIf(o => o.passed == true)
+  @IsNotEmpty()
+  @IsUrl()
+  readonly fileURL: string
 }

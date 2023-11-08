@@ -85,6 +85,11 @@ export class MHS {
     // required: [true, "Need to be bind with Academic Advisor"],
   })
   dosWal: ObjectId;
+
+  @Prop({
+    default: false
+  })
+  check: boolean;
 }
 
 export const MHSSchema = SchemaFactory.createForClass(MHS)
