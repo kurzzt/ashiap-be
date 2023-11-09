@@ -110,17 +110,8 @@ export class UserService {
 
 
   async findUserById(id: string) {
-    const user = await this.userModel.findById(id, '-__v')
-    if (!user) throw new BadRequestException(`Cant find User with ${id} IDs`)
-
-    const query = await this.userModel.populate(
-      user,
-      {
-        path: 'userId',
-        model: `${user.role}`,
-        select: '_id name address noTelp desc'
-      }
-    )
+    const query = await this.userModel.findById(id, '-__v').populate('userId', '-__v -irs -pkl -skripsi')
+    if (!query) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
     const response = flattenObject(query)
     return response
@@ -158,7 +149,7 @@ export class UserService {
   }
 
   async findByEmail(email: string): Promise<any>{
-    const query = await this.userModel.findOne({ email }, '+password').populate('userId', 'name _id')
+    const query = await this.userModel.findOne({ email }, '+password').populate('userId', 'name _id check')
     return flattenObject(query)
   }
 

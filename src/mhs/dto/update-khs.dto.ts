@@ -2,7 +2,7 @@ import { IsNotEmpty, IsNumber, IsUrl, Max, Min } from "class-validator";
 
 export class UpdateKHSDto {
   @IsNotEmpty()
-  @IsUrl()
+  // @IsUrl()
   readonly fileURL: string
 
   @IsNotEmpty()

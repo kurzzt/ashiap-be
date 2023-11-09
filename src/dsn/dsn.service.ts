@@ -58,7 +58,7 @@ export class DsnService {
   }
 
   async findDsnById(id: string): Promise<DSN>{
-    const response = await this.dsnModel.findById(id, '-_id -__v -createdAt -updatedAt')
+    const response = await this.dsnModel.findById(id, '-__v')
     if(response) return response
     else throw new BadRequestException(`Cant find User with ${id} IDs`)
   }

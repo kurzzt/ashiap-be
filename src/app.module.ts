@@ -20,7 +20,7 @@ import { JwtModule } from '@nestjs/jwt';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.development.local'],
+      envFilePath: ['.env.development.local', '.env'],
       isGlobal: true,
     }),
     MongooseModule.forRoot( process.env.MONGO_URI, {

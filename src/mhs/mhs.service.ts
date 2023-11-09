@@ -4,7 +4,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as csv from 'csv-parser';
 import { Query } from 'express-serve-static-core';
 import { Model, Types } from 'mongoose';
-import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 import { UserService } from 'src/user/user.service';
 import { flattenObject } from 'utils/common';
 import { genParam } from 'utils/filter';
@@ -32,8 +31,7 @@ export class MhsService {
     private pklModel: Model<PKL>,
     @InjectModel(Skripsi.name)
     private skripsiModel: Model<Skripsi>,
-    private userService: UserService,
-    private cloudinary: CloudinaryService
+    private userService: UserService
   ) { }
 
   async validateNIM(nim: string) { return await this.mhsModel.findOne({ nim }) }
@@ -48,6 +46,54 @@ export class MhsService {
     return response
   }
 
+  private async statSkripsiBasedOnYoE() {
+    const response = await this.mhsModel.aggregate([{
+      $group: {
+        _id: {
+          YoE: '$YoE',
+          skripsi: {
+            $cond: {
+              if: { $eq: ['$skripsi', null] },
+              then: 'untaken',
+              else: 'taken',
+            }
+          }
+        },
+        count: { $sum: 1 }
+      }
+    }])
+
+    return response.map(x => flattenObject(x))
+  }
+
+  private async statPKLBasedOnYoE() {
+    const response = await this.mhsModel.aggregate([{
+      $group: {
+        _id: {
+          YoE: '$YoE',
+          pkl: {
+            $cond: {
+              if: { $eq: ['$pkl', null] },
+              then: 'untaken',
+              else: 'taken',
+            }
+          }
+        },
+        count: { $sum: 1 }
+      }
+    }])
+
+    return response.map(x => flattenObject(x))
+  }
+
+  async dashboard() {
+    const statMhs = await this.statTotal()
+    const statPKL = await this.statPKLBasedOnYoE()
+    const statSkripsi = await this.statSkripsiBasedOnYoE()
+
+    return { statMhs, statPKL, statSkripsi }
+  }
+
   private async currSKS(id: string) {
     const { irs } = await this.mhsModel.findById(id)
     const response = await this.irsModel.aggregate([
@@ -60,8 +106,7 @@ export class MhsService {
         }
       }
     ])
-    if (!response[0]) return 0
-    return response[0].totalSKS
+    return response[0]?.totalSKS || 0
   }
 
   private async createIRS(sem: number) {
@@ -129,10 +174,11 @@ export class MhsService {
   }
 
   async updateMhs(id: string, body: UpdateMhsDto) {
+    const { gender, address, province, noTelp } = body
     const validUserId = await this.mhsModel.findById(id)
     if (!validUserId) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
-    const response = await this.mhsModel.findByIdAndUpdate(id, { ...body, check: true }, { new: true, runValidators: true })
+    const response = await this.mhsModel.findByIdAndUpdate(id, { gender, address, province, noTelp, check: true }, { new: true, runValidators: true })
     return response
   }
 
@@ -168,11 +214,12 @@ export class MhsService {
       AR: String,
       status: String,
       dosWal: Object,
+      gender: String,
       search: ['name', 'nim']
     }
     const { limit, skip, params } = genParam(q, filter)
     const count = await this.mhsModel.countDocuments()
-    const query = await this.mhsModel.find(params, '_id nim name dosWal YoE AR status createdAt').populate('dosWal', 'name -_id').limit(limit).skip(skip)
+    const query = await this.mhsModel.find(params, '-irs -__v').populate('dosWal', 'name -_id').limit(limit).skip(skip)
     const response = query.map(obj => flattenObject(obj))
     return { total: count, totalPage: Math.ceil(count / limit), data: response }
   }
@@ -308,9 +355,9 @@ export class MhsService {
     const { skripsi } = await this.mhsModel.findById(id)
     if (!skripsi) throw new BadRequestException(`User with ${id} IDs hasn't yet taken the Skripsi`)
 
-    let response: Object
-    if (body.passed) {
-      response = await this.pklModel.findByIdAndUpdate(skripsi.toString(), {
+    const { passed } = body
+    if (passed) {
+      const response = await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), {
         passed: true,
         nilai: body.nilai,
         fileURL: body.fileURL,
@@ -318,7 +365,7 @@ export class MhsService {
       }, { new: true, runValidators: true })
       return response
     } else {
-      return await this.pklModel.findByIdAndUpdate(skripsi.toString(), { passed: false }, { new: true, runValidators: true })
+      return await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), { passed: false }, { new: true, runValidators: true })
     }
   }
 

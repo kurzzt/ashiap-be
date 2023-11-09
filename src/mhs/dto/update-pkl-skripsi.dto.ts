@@ -15,7 +15,7 @@ export class UpdatePKLDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  @IsUrl()
+  // @IsUrl()
   readonly fileURL: string
 }
 
@@ -34,6 +34,6 @@ export class UpdateSkripsiDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  @IsUrl()
+  // @IsUrl()
   readonly fileURL: string
 }

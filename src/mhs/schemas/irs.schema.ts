@@ -24,7 +24,9 @@ export class IRS {
   })
   sks: number;
 
-  @Prop()
+  @Prop({
+    default: ""
+  })
   fileURL: string;
 
   @Prop({

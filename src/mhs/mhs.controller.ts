@@ -56,7 +56,7 @@ export class MhsController {
   ) {
     return this.mhsService.updateMhs(id, body)
   }
-
+  
   @Get()
   @Roles(ROLE.DEPT, ROLE.DSN)
   @ResponseMessage('Successfully Get All Mahasiswa')
@@ -177,12 +177,4 @@ export class MhsController {
   ) {
     return this.mhsService.deleteMhsById(id)
   }
-
-
-  // @Get('/paramsTest3/:number/:name/:age')
-  // getIdTest3(@Param() params:number): string{
-  //   console.log(params);
-  //   return this.appService.getMultipleParams(params);
-  // }
-  // { number:11, name: thiago, age: 23 }
 }

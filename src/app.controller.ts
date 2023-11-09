@@ -5,12 +5,14 @@ import { LoginDto } from './auth/login.dto';
 import { Public } from 'src/auth/public.decorator';
 import { ResponseMessage } from 'utils/response_message.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { MhsService } from './mhs/mhs.service';
 
 @Controller()
 @UseInterceptors(TransformInterceptor)
 export class AppController {
   constructor(
     private readonly appService: AppService,
+    private readonly mhsService: MhsService
   ) { }
 
   @Public()
@@ -46,5 +48,11 @@ export class AppController {
     ) file: Express.Multer.File
   ) {
     return this.appService.uploadSingleFile(file)
+  }
+
+  @Get('dashboard')
+  @ResponseMessage('Dashboard')
+  async dashboard(){
+    return this.mhsService.dashboard()
   }
 }

@@ -18,18 +18,21 @@ export class MHS {
   name: string;
 
   @Prop({
-    required: [true, 'Gender Information required'],
+    // required: [true, 'Gender Information required'],
+    default: null,
     enum: Object.values(SEX)
   })
   gender: string
   
   @Prop({
-    default: ""
+    // default: ""
+    default: null,
   })
   address: string;
 
   @Prop({
-    required: [true, "Provinsi Information required"]
+    // required: [true, "Provinsi Information required"]
+    default: null,
   })
   province: string;
 
@@ -45,7 +48,8 @@ export class MHS {
   AR: string;
 
   @Prop({
-    required: [true, "NoTelp Information required"]
+    // required: [true, "NoTelp Information required"]
+    default: null,
   })
   noTelp: string;
 
