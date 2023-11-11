@@ -1,15 +1,15 @@
-import { IsNotEmpty, IsNumber, IsUrl, Max, Min } from "class-validator";
+import { IsNotEmpty, IsNumber, IsObject, IsUrl, Max, Min } from "class-validator";
 
 export class UpdateKHSDto {
   @IsNotEmpty()
-  // @IsUrl()
-  readonly fileURL: string
+  @IsObject()
+  readonly fileURL: FileObject
 
   @IsNotEmpty()
   @IsNumber()
   @Min(1)
   @Max(14)
-  readonly sem: number
+  readonly semester: number
   
   @IsNotEmpty()
   @IsNumber()

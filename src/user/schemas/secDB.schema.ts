@@ -6,7 +6,7 @@ export class secDB {
   @Prop({
     type: Types.ObjectId,
     required: [true, 'User required'],
-    refPath: ['MHS', 'DSN', 'ADM', 'DEPT']
+    refPath: ['MHS', 'DSN', 'ADM', 'DEPT'] //fix
   })
   _id: Types.ObjectId;
   

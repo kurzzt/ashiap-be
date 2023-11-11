@@ -1,13 +1,14 @@
 import { Query } from 'express-serve-static-core';
 import { Types } from 'mongoose';
 
-export function genParam(q: Query, filter: Record<string, any>):Record<string, any> {
+export function genParam(q: Query, filter?: Record<string, any>):Record<string, any> {
   const limit = Number(q.limit) || 10
   const page = Number(q.page) || 1
   const skip = limit * (page - 1)
+  const sort = (q.sort_by) ? { [<string>q?.sort_by] : (q.sort === "desc") ? -1 : 1 , _id: 1 } : {}
 
   const params =  Object.keys(q).reduce((res, key) => { 
-    if (filter.hasOwnProperty(key)) {
+    if (filter?.hasOwnProperty(key)) {
       if (filter[key] === String) res[key] = q[key]
       else if (filter[key] === Number) res[key] = Number(q[key])
       else if (filter[key] === Boolean) res[key] = (q[key] === 'true') ? true : false
@@ -16,5 +17,5 @@ export function genParam(q: Query, filter: Record<string, any>):Record<string, a
     }
     return res
   }, {})
-  return { limit, skip, params }
+  return { limit, skip, params, sort }
 }

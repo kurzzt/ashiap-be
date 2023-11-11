@@ -12,6 +12,7 @@ import { DeptService } from './../dept/dept.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { secDB } from './schemas/secDB.schema';
 import { User } from './schemas/user.schema';
+import { CoreResponseData } from 'utils/CoreResponseData';
 var mongoose = require('mongoose');
 
 @Injectable()
@@ -101,11 +102,11 @@ export class UserService {
       search : ['email']
     }
 
-    const { limit, skip, params } = genParam(q, filter)
-    const count = await this.userModel.countDocuments()
-    const query = await this.userModel.find({ ...params }, '-__v').populate('userId', 'name _id').limit(limit).skip(skip)
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const count = await this.userModel.countDocuments(params)
+    const query = await this.userModel.find(params, '-__v').populate('userId', '_id name noTelp address desc active status check').limit(limit).skip(skip).sort(sort)
     const response = query.map(obj => flattenObject(obj))
-    return { total: count, totalPage: Math.ceil(count / limit), data: response }
+    return new CoreResponseData(count, limit, response)
   }
 
 

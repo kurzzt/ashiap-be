@@ -7,6 +7,7 @@ import { UserService } from 'src/user/user.service';
 import { faker } from '@faker-js/faker';
 import { Query } from 'express-serve-static-core';
 import { genParam } from 'utils/filter';
+import { CoreResponseData } from 'utils/CoreResponseData';
 // import { MhsService } from 'src/mhs/mhs.service';
 
 @Injectable()
@@ -51,10 +52,10 @@ export class DsnService {
       search : ['name','nip']
     }
 
-    const { limit, skip, params } = genParam(q, filter)
-    const count = await this.dsnModel.countDocuments()
-    const response = await this.dsnModel.find({ ...params }, 'nip name position eduLevel jobStat active createdAt').limit(limit).skip(skip)
-    return { total: count, totalPage: Math.ceil(count / limit), data: response }
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const count = await this.dsnModel.countDocuments(params)
+    const response = await this.dsnModel.find(params, '-__v').limit(limit).skip(skip).sort(sort)
+    return new CoreResponseData(count, limit, response)
   }
 
   async findDsnById(id: string): Promise<DSN>{

@@ -18,6 +18,8 @@ import { MHS } from './schemas/mhs.schema';
 import { PKL, Skripsi } from './schemas/pkl.schema';
 var mongoose = require('mongoose');
 import toStream = require('buffer-to-stream');
+import { CoreResponseData } from 'utils/CoreResponseData';
+import { Response } from 'express';
 
 
 @Injectable()
@@ -217,37 +219,58 @@ export class MhsService {
       gender: String,
       search: ['name', 'nim']
     }
-    const { limit, skip, params } = genParam(q, filter)
-    const count = await this.mhsModel.countDocuments()
-    const query = await this.mhsModel.find(params, '-irs -__v').populate('dosWal', 'name -_id').limit(limit).skip(skip)
+    
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const count = await this.mhsModel.countDocuments(params)
+    const query = await this.mhsModel.find(params, '-irs -__v').populate('dosWal', 'name _id').limit(limit).skip(skip).sort(sort)
+    
     const response = query.map(obj => flattenObject(obj))
-    return { total: count, totalPage: Math.ceil(count / limit), data: response }
+    return new CoreResponseData(count, limit, response)
   }
 
   async findMhsById(id: string) {
-    const query = await this.mhsModel.findById(id, '-irs -khs -pkl -skripsi -__v').populate('dosWal', 'name -_id')
+    const query = await this.mhsModel.findById(id, '-irs -khs -pkl -skripsi -__v').populate('dosWal', 'name _id')
     if (query) return flattenObject(query)
     else throw new BadRequestException(`Cant find User with ${id} IDs`)
   }
 
-
-  async findMhsIRSById(id: string) {
+  async findMhsIRSById(q: Query, id: string) {
     const validUserId = await this.mhsModel.findById(id)
     if (!validUserId) throw new BadRequestException(`Cant find User with ${id} IDs`)
-
+    
+    const filter = {
+      status: String,
+      semester: Number,
+      sks: Number,
+    }
+    
+    const { limit, skip, params, sort } = genParam(q, filter)
     const { irs } = await this.mhsModel.findById(id, 'irs -_id')
-    const response = await this.irsModel.find({ _id: { $in: irs.map(irsItem => irsItem.toString()) } }, '-khs -__v -createdAt -updatedAt')
-    return response
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
+    const count = await this.irsModel.countDocuments({...param, ...params})
+    const response = await this.irsModel.find({...param, ...params}, '-khs -__v').limit(limit).skip(skip).sort(sort)
+    return new CoreResponseData(count, limit, response)
   }
 
-  async findMhsKHSById(id: string) {
+  async findMhsKHSById(q: Query, id: string) {
     const validUserId = await this.mhsModel.findById(id)
     if (!validUserId) throw new BadRequestException(`Cant find User with ${id} IDs`)
+    
+    const filter = {
+      semester: Number,
+      sks: Number,
+    }
 
+    const { limit, skip, params, sort } = genParam(q, filter)
     const { irs } = await this.mhsModel.findById(id)
-    const query = await this.irsModel.find({ _id: { $in: irs.map(irsItem => irsItem.toString()) } }, 'semester sks khs')
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
+    console.log({...param, ...params})
+    const count = await this.irsModel.countDocuments({...param, ...params})
+    const query = await this.irsModel.find({...param, ...params}, '-fileURL -__v').limit(limit).skip(skip).sort(sort)
     const response = query.map(obj => flattenObject(obj))
-    return response
+    return new CoreResponseData(count, limit, response)
   }
 
   async findMhsPKLById(id: string) {
@@ -290,18 +313,18 @@ export class MhsService {
     }
   }
 
-  async updateIRS(id: string, body: UpdateIRSDto) {
+  async updateIRS(id: string, body: UpdateIRSDto, res: Response) {
     const validUserId = await this.mhsModel.findById(id)
     if (!validUserId) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
-    const { fileURL, sks, sem } = body
+    const { fileURL, sks, semester } = body
     const { irs } = await this.mhsModel.findById(id, 'irs -_id')
     const response = await this.irsModel.findByIdAndUpdate(
-      irs[sem - 1].toString(),
+      irs[semester - 1].toString(),
       {
         status: StatIRS.UNVERIFIED,
         sks: sks,
-        fileURL: fileURL
+        fileURL: fileURL.preview
       }, { new: true, runValidators: true }
     )
 
@@ -312,15 +335,15 @@ export class MhsService {
     const validUserId = await this.mhsModel.findById(id)
     if (!validUserId) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
-    const { fileURL, ipk, sem } = body
+    const { fileURL, ipk, semester } = body
     const { irs } = await this.mhsModel.findById(id, 'irs -_id')
     const response = await this.irsModel.findByIdAndUpdate(
-      irs[sem - 1].toString(),
+      irs[semester - 1].toString(),
       {
         $set: {
           'khs.status': StatIRS.UNVERIFIED,
           'khs.ipk': ipk,
-          'khs.fileURL': fileURL
+          'khs.fileURL': fileURL.preview
         }
       }, { new: true, runValidators: true }
     )
@@ -339,7 +362,7 @@ export class MhsService {
       response = await this.pklModel.findByIdAndUpdate(pkl.toString(), {
         passed: true,
         nilai: body.nilai,
-        fileURL: body.fileURL,
+        fileURL: body.fileURL.preview,
         lulusAt: new Date()
       }, { new: true, runValidators: true })
       return response
@@ -360,7 +383,7 @@ export class MhsService {
       const response = await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), {
         passed: true,
         nilai: body.nilai,
-        fileURL: body.fileURL,
+        fileURL: body.fileURL.preview,
         lulusAt: new Date()
       }, { new: true, runValidators: true })
       return response

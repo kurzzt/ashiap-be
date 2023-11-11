@@ -17,7 +17,8 @@ export class AppService {
     const { email, password } = body
     const user = await this.userService.findByEmail(email)
     // console.log(user)
-    if(!user) throw new UnauthorizedException('Invalid email or password')
+    // console.log(body)
+    if(!Object.keys(user || {}).length) throw new UnauthorizedException('Invalid email or password')
     const isPasswordMatched = await bcrypt.compare(password, user.password)
     if(!isPasswordMatched) throw new UnauthorizedException('Invalid email or password')
     

@@ -1,4 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsUrl, Max, Min, ValidateIf } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsObject, IsUrl, Max, Min, ValidateIf } from "class-validator";
 
 export class UpdatePKLDto {
   // @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)
@@ -15,8 +15,8 @@ export class UpdatePKLDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  // @IsUrl()
-  readonly fileURL: string
+  @IsObject()
+  readonly fileURL: FileObject
 }
 
 export class UpdateSkripsiDto {
@@ -34,6 +34,6 @@ export class UpdateSkripsiDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  // @IsUrl()
-  readonly fileURL: string
+  @IsObject()
+  readonly fileURL: FileObject
 }

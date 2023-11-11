@@ -1,9 +1,8 @@
-import { Body, Controller, Post, Get, Param, Query, Delete, Put, UploadedFile, UseInterceptors, ParseFilePipeBuilder, HttpStatus, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, Get, Param, Query, Delete, Put, UseInterceptors, UseGuards, Res } from '@nestjs/common';
 import { MhsService } from './mhs.service';
 import { CreateMhsDto } from './dto/create-mhs.dto';
 import { UpdateIRSDto } from './dto/update-irs.dto';
 import { Query as ExpressQuery } from 'express-serve-static-core';
-import { FileInterceptor } from '@nestjs/platform-express';
 import { UpdateKHSDto } from './dto/update-khs.dto';
 import { ResponseMessage } from 'utils/response_message.decorator';
 import { TransformInterceptor } from 'utils/response.interceptor';
@@ -12,6 +11,7 @@ import { RolesGuard } from 'src/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
 import { ROLE } from 'utils/global.enum';
 import { UpdateMhsDto } from './dto/update-mhs.dto';
+import { Response } from 'express';
 
 @Controller('mhs')
 @UseGuards(RolesGuard)
@@ -46,7 +46,8 @@ export class MhsController {
   // ) {
   //   return this.mhsService.bulkDataMhs(file)
   // }
-
+  
+  // GET CONTEXT
   @Put(':id')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Update Data Mahasiswa')
@@ -79,9 +80,10 @@ export class MhsController {
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data IRS of Specific Mahasiswa IDs')
   async getMhsIRS(
+    @Query() q: ExpressQuery,
     @Param('id') id: string
   ) {
-    return this.mhsService.findMhsIRSById(id)
+    return this.mhsService.findMhsIRSById(q, id)
   }
 
 
@@ -89,9 +91,10 @@ export class MhsController {
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data KHS of Specific Mahasiswa IDs')
   async getMhsKHS(
+    @Query() q: ExpressQuery,
     @Param('id') id: string
   ) {
-    return this.mhsService.findMhsKHSById(id)
+    return this.mhsService.findMhsKHSById(q, id)
   }
 
   @Get(':id/pkl')
@@ -130,16 +133,19 @@ export class MhsController {
     return this.mhsService.createSkripsi(id)
   }
 
+  // GET CONTEXT
   @Put(':id/irs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data IRS')
   async updateIRSMhs(
     @Param('id') id: string,
     @Body() data: UpdateIRSDto,
+    @Res() res: Response
   ) {
-    return this.mhsService.updateIRS(id, data)
+    return this.mhsService.updateIRS(id, data, res)
   }
 
+  // GET CONTEXT
   @Put(':id/khs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data KHS')
@@ -150,6 +156,7 @@ export class MhsController {
     return this.mhsService.updateKHS(id, data)
   }
 
+  // GET CONTEXT
   @Put(':id/pkl')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data PKL')
@@ -160,6 +167,7 @@ export class MhsController {
     return this.mhsService.updatePKL(id, data);
   }
 
+  // GET CONTEXT
   @Put(':id/skripsi')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data Skripsi')
