@@ -26,12 +26,13 @@ export class DsnService {
       const {
         nip, name, email, gender, position,
         eduLevel, jobStat, noTelp, address,
-        province, desc } = dsn
+        province, desc, photoURL } = dsn
 
       const createDsn = await this.dsnModel.create({
         nip, name, gender, position,
         eduLevel, jobStat, noTelp, address,
-        province, desc,
+        province, desc, 
+        photoURL : photoURL.preview
       })
 
       const randomPass = faker.internet.password({ length: 12 }); // Randomized password

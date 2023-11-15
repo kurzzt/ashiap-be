@@ -85,6 +85,11 @@ export class MHS {
   skripsi: ObjectId;
 
   @Prop({
+    required: [true, 'PhotoURL required']
+  })
+  photoURL: string
+
+  @Prop({
     type: Types.ObjectId, ref: "DSN",
     // required: [true, "Need to be bind with Academic Advisor"],
   })

@@ -9,14 +9,25 @@ export class PKL {
   })
   passed: boolean;
 
-  @Prop()
+  @Prop({
+    default: null
+  })
   nilai: number;
 
-  @Prop()
+  @Prop({
+    default: ""
+  })
   fileURL: string;
 
-  @Prop()
+  @Prop({
+    default: null
+  })
   lulusAt: Date;
+
+  @Prop({
+    default: null
+  })
+  isVerified: boolean;
 }
 
 export const PKLSchema = SchemaFactory.createForClass(PKL)
@@ -30,14 +41,25 @@ export class Skripsi {
   })
   passed: boolean;
 
-  @Prop()
+  @Prop({
+    default: null
+  })
   nilai: number;
 
-  @Prop()
+  @Prop({
+    default: ""
+  })
   fileURL: string;
 
-  @Prop()
+  @Prop({
+    default: null
+  })
   lulusAt: Date;
+
+  @Prop({
+    default: null
+  })
+  isVerified: boolean;
 }
 
 export const SkripsiSchema = SchemaFactory.createForClass(Skripsi)

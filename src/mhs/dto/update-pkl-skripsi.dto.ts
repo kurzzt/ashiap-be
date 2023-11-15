@@ -1,4 +1,5 @@
-import { IsBoolean, IsNotEmpty, IsNumber, IsObject, IsUrl, Max, Min, ValidateIf } from "class-validator";
+import { IsBoolean, IsNotEmpty, IsNumber, IsObject, Max, Min, ValidateIf } from "class-validator";
+import { FileObject } from "utils/globals";
 
 export class UpdatePKLDto {
   // @Transform(({ value }) => value === 'true' ? true : value === 'false' ? false : value)

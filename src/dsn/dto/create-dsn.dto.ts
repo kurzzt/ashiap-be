@@ -1,7 +1,8 @@
-import { IsDefined, IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsNumberString, IsString } from "class-validator";
+import { IsDefined, IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsNumberString, IsObject, IsString } from "class-validator";
 import { POS, SEX, eduLev, jobStat } from "utils/global.enum";
 import { IsEmailUnique } from "utils/uniqueMail.decorator";
 import { IsNIPUnique } from "../uniqueNIP.decorator";
+import { FileObject } from "utils/globals";
 
 export class CreateDsnDto {
   @IsNotEmpty()
@@ -49,4 +50,8 @@ export class CreateDsnDto {
   @IsDefined()
   @IsString()
   readonly desc : string
+
+  @IsNotEmpty()
+  @IsObject()
+  readonly photoURL: FileObject
 }

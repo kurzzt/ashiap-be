@@ -1,17 +1,17 @@
-import { Body, Controller, Post, Get, Param, Query, Delete, Put, UseInterceptors, UseGuards, Res } from '@nestjs/common';
-import { MhsService } from './mhs.service';
-import { CreateMhsDto } from './dto/create-mhs.dto';
-import { UpdateIRSDto } from './dto/update-irs.dto';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, UseInterceptors } from '@nestjs/common';
 import { Query as ExpressQuery } from 'express-serve-static-core';
-import { UpdateKHSDto } from './dto/update-khs.dto';
-import { ResponseMessage } from 'utils/response_message.decorator';
-import { TransformInterceptor } from 'utils/response.interceptor';
-import { UpdatePKLDto, UpdateSkripsiDto } from './dto/update-pkl-skripsi.dto';
-import { RolesGuard } from 'src/roles.guard';
 import { Roles } from 'src/auth/roles.decorator';
+import { RolesGuard } from 'src/roles.guard';
 import { ROLE } from 'utils/global.enum';
+import { TransformInterceptor } from 'utils/response.interceptor';
+import { ResponseMessage } from 'utils/response_message.decorator';
+import { CreateMhsDto } from './dto/create-mhs.dto';
+import { UpdateIRSDto, UpdateKHSDto } from './dto/update-irs-khs.dto';
 import { UpdateMhsDto } from './dto/update-mhs.dto';
-import { Response } from 'express';
+import { UpdatePKLDto, UpdateSkripsiDto } from './dto/update-pkl-skripsi.dto';
+import { VerifyIRSDto, VerifyKHSDto, VerifyPKLDto, VerifySkripsiDto } from './dto/verify-ap.dto';
+import { MhsService } from './mhs.service';
+import { ValidateMhsParamId } from './validate-mhs-param.pipe';
 
 @Controller('mhs')
 @UseGuards(RolesGuard)
@@ -46,18 +46,18 @@ export class MhsController {
   // ) {
   //   return this.mhsService.bulkDataMhs(file)
   // }
-  
+
   // GET CONTEXT
   @Put(':id')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Update Data Mahasiswa')
   async updateMhs(
-    @Param('id') id: string,
+    @Param('id', ValidateMhsParamId) id: string,
     @Body() body: UpdateMhsDto
   ) {
     return this.mhsService.updateMhs(id, body)
   }
-  
+
   @Get()
   @Roles(ROLE.DEPT, ROLE.DSN)
   @ResponseMessage('Successfully Get All Mahasiswa')
@@ -71,7 +71,7 @@ export class MhsController {
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data Mahasiswa')
   async getMhsById(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsById(id)
   }
@@ -81,7 +81,7 @@ export class MhsController {
   @ResponseMessage('Successfully Get Data IRS of Specific Mahasiswa IDs')
   async getMhsIRS(
     @Query() q: ExpressQuery,
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsIRSById(q, id)
   }
@@ -92,7 +92,7 @@ export class MhsController {
   @ResponseMessage('Successfully Get Data KHS of Specific Mahasiswa IDs')
   async getMhsKHS(
     @Query() q: ExpressQuery,
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsKHSById(q, id)
   }
@@ -101,7 +101,7 @@ export class MhsController {
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data PKL of Specific Mahasiswa IDs')
   async getMhsPKL(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsPKLById(id)
   }
@@ -110,7 +110,7 @@ export class MhsController {
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data Skripsi of Specific Mahasiswa IDs')
   async getMhsSkripsi(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsSkripsiById(id)
   }
@@ -119,7 +119,7 @@ export class MhsController {
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take PKL')
   async createPKL(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.createPKL(id)
   }
@@ -128,60 +128,95 @@ export class MhsController {
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take Skripsi')
   async createSkripsi(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.createSkripsi(id)
   }
 
-  // GET CONTEXT
   @Put(':id/irs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data IRS')
   async updateIRSMhs(
-    @Param('id') id: string,
-    @Body() data: UpdateIRSDto,
-    @Res() res: Response
+    @Param('id', ValidateMhsParamId) id: string,
+    @Body() data: UpdateIRSDto
   ) {
-    return this.mhsService.updateIRS(id, data, res)
+    return this.mhsService.updateIRS(id, data)
   }
 
-  // GET CONTEXT
   @Put(':id/khs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data KHS')
   async updateKHSMhs(
-    @Param('id') id: string,
+    @Param('id', ValidateMhsParamId) id: string,
     @Body() data: UpdateKHSDto,
   ) {
     return this.mhsService.updateKHS(id, data)
   }
 
-  // GET CONTEXT
   @Put(':id/pkl')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data PKL')
   async updatePKLMhs(
-    @Param('id') id: string,
+    @Param('id', ValidateMhsParamId) id: string,
     @Body() data: UpdatePKLDto
   ) {
     return this.mhsService.updatePKL(id, data);
   }
 
-  // GET CONTEXT
   @Put(':id/skripsi')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data Skripsi')
   async updateSkripsiMhs(
-    @Param('id') id: string,
+    @Param('id', ValidateMhsParamId) id: string,
     @Body() data: UpdateSkripsiDto
-  ){
+  ) {
     return this.mhsService.updateSkripsi(id, data)
+  }
+
+  @Put(':id/irs/verify')
+  @Roles(ROLE.DSN)
+  @ResponseMessage('Successfully Verify Data IRS')
+  async verifyIRSMhs(
+    @Param('id', ValidateMhsParamId) id: string,
+    @Body() body: VerifyIRSDto,
+  ) {
+    return this.mhsService.verifyIRS(id, body)
+  }
+
+  @Put(':id/khs/verify')
+  @Roles(ROLE.DSN)
+  @ResponseMessage('Successfully Verify Data KHS')
+  async verifyKHSMhs(
+    @Param('id', ValidateMhsParamId) id: string,
+    @Body() body: VerifyKHSDto,
+  ) {
+    return this.mhsService.verifyKHS(id, body)
+  }
+
+  @Put(':id/pkl/verify')
+  @Roles(ROLE.DSN)
+  @ResponseMessage('Successfully Verify Data PKL')
+  async verifyPKLMhs(
+    @Param('id', ValidateMhsParamId) id: string,
+    @Body() body: VerifyPKLDto
+  ) {
+    return this.mhsService.verifyPKL(id, body);
+  }
+
+  @Put(':id/skripsi/verify')
+  @Roles(ROLE.DSN)
+  @ResponseMessage('Successfully Verify Data Skripsi')
+  async verifySkripsiMhs(
+    @Param('id', ValidateMhsParamId) id: string,
+    @Body() body: VerifySkripsiDto
+  ) {
+    return this.mhsService.verifySkripsi(id, body)
   }
 
   @Delete(':id')
   @ResponseMessage('Successfully Delete Data Mahasiswa')
   async deleteMhsById(
-    @Param('id') id: string
+    @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.deleteMhsById(id)
   }

@@ -3,10 +3,10 @@ import { MhsService } from './mhs.service';
 import { MhsController } from './mhs.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MHSSchema } from './schemas/mhs.schema';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { UserModule } from './../user/user.module';
 import { IRSSchema } from './schemas/irs.schema';
-import { PKLSchema, SkripsiSchema } from './schemas/pkl.schema';
-import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
+import { PKLSchema, SkripsiSchema } from './schemas/pkl-skripsi.schema';
 
 @Module({
   imports: [

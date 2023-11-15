@@ -6,6 +6,8 @@ import { Public } from 'src/auth/public.decorator';
 import { ResponseMessage } from 'utils/response_message.decorator';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { MhsService } from './mhs/mhs.service';
+import { User } from 'utils/user.decorator';
+import { UserEntity } from 'utils/globals';
 
 @Controller()
 @UseInterceptors(TransformInterceptor)
@@ -52,7 +54,9 @@ export class AppController {
 
   @Get('dashboard')
   @ResponseMessage('Dashboard')
-  async dashboard(){
-    return this.mhsService.dashboard()
+  async dashboard(
+    @User() user: UserEntity
+  ){
+    return this.mhsService.dashboard(user)
   }
 }

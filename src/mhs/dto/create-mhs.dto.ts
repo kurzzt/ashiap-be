@@ -37,5 +37,5 @@ export class CreateMhsDto {
 
   @IsNotEmpty()
   @IsMongoId()
-  readonly dosWal: ObjectId
+  readonly dosWalName: ObjectId
 }

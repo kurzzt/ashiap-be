@@ -5,7 +5,8 @@ export const flattenObject = (obj: Record<string, any>, prefix = '') => {
   for (const key in sanitizedObj) {
     if (typeof sanitizedObj[key] === 'object' && sanitizedObj[key] !== null) {
       for (const nestedKey in sanitizedObj[key]) {
-        flattened[`${prefix}${key}.${nestedKey}`] = sanitizedObj[key][nestedKey]
+        const toTitleCase = nestedKey.replace(/\b\w/g, (nestedKey) => nestedKey.toUpperCase() )
+        flattened[`${prefix}${key}${toTitleCase}`] = sanitizedObj[key][nestedKey]
       }
     } else {
       flattened[`${prefix}${key}`] = sanitizedObj[key]

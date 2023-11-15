@@ -1,5 +1,6 @@
-import { IsDefined, IsEnum, IsMobilePhone, IsNotEmpty, IsString } from "class-validator";
+import { IsDefined, IsEnum, IsMobilePhone, IsNotEmpty, IsObject, IsString } from "class-validator";
 import { SEX } from "../../../utils/global.enum";
+import { FileObject } from "utils/globals";
 
 export class UpdateMhsDto {
   @IsNotEmpty()
@@ -17,4 +18,8 @@ export class UpdateMhsDto {
   @IsNotEmpty()
   @IsMobilePhone()
   readonly noTelp: string
+
+  @IsNotEmpty()
+  @IsObject()
+  readonly photoURL: FileObject
 }

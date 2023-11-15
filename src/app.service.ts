@@ -22,7 +22,7 @@ export class AppService {
     const isPasswordMatched = await bcrypt.compare(password, user.password)
     if(!isPasswordMatched) throw new UnauthorizedException('Invalid email or password')
     
-    const payload = { sub: user['userId._id'] }
+    const payload = { sub: user['userId_id'] }
     return {
       user: user,
       access_token: await this.jwtService.signAsync(payload),

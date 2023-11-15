@@ -56,6 +56,11 @@ export class DSN {
   province: string;
 
   @Prop({
+    required: [true, 'photoURL required']
+  })
+  photoURL: string;
+
+  @Prop({
     default: ''
   })
   desc: string;
