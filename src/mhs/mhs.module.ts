@@ -7,6 +7,7 @@ import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 import { UserModule } from './../user/user.module';
 import { IRSSchema } from './schemas/irs.schema';
 import { PKLSchema, SkripsiSchema } from './schemas/pkl-skripsi.schema';
+import { DsnModule } from 'src/dsn/dsn.module';
 
 @Module({
   imports: [
@@ -26,7 +27,8 @@ import { PKLSchema, SkripsiSchema } from './schemas/pkl-skripsi.schema';
       }
     ]),
     UserModule,
-    CloudinaryModule
+    CloudinaryModule,
+    DsnModule
   ],
   controllers: [MhsController],
   providers: [MhsService],

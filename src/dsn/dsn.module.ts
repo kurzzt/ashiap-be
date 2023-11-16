@@ -4,7 +4,7 @@ import { DsnService } from './dsn.service';
 import { DsnController } from './dsn.controller';
 import { DSNSchema } from './schemas/dsn.schema';
 import { UserModule } from 'src/user/user.module';
-import { MhsModule } from 'src/mhs/mhs.module';
+// import { MhsModule } from 'src/mhs/mhs.module';
 
 @Module({
   imports: [
@@ -15,7 +15,7 @@ import { MhsModule } from 'src/mhs/mhs.module';
       }
     ]),
     UserModule,
-    MhsModule
+    // MhsModule
   ],
   providers: [DsnService],
   controllers: [DsnController],

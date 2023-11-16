@@ -20,6 +20,7 @@ import { PKL, Skripsi } from './schemas/pkl-skripsi.schema';
 var mongoose = require('mongoose');
 import toStream = require('buffer-to-stream');
 import { VerifyIRSDto, VerifyKHSDto, VerifyPKLDto, VerifySkripsiDto } from './dto/verify-ap.dto';
+import { DsnService } from 'src/dsn/dsn.service';
 
 
 @Injectable()
@@ -33,7 +34,8 @@ export class MhsService {
     private pklModel: Model<PKL>,
     @InjectModel(Skripsi.name)
     private skripsiModel: Model<Skripsi>,
-    private userService: UserService
+    private userService: UserService,
+    private dsnService: DsnService
   ) { }
 
   async validateNIM(nim: string) { return await this.mhsModel.findOne({ nim }) }
@@ -119,6 +121,9 @@ export class MhsService {
       const currSem = await this.currSem(sub.toString()) //active semester
 
       return { user, currSem, currSKS, cummIPK }
+    } else if(roles === ROLE.DSN){
+      const user = await this.dsnService.findDsnById(sub.toString())
+      return { user, statMhs, statMhsAR, statPKL, statSkripsi }
     } else {
       return { statMhs, statMhsAR, statPKL, statSkripsi }
     }

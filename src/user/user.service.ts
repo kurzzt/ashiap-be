@@ -118,6 +118,8 @@ export class UserService {
     return response
   }
 
+  
+
   private async deleteUserById(id: string): Promise<User> {
     const response = await this.userModel.findByIdAndDelete(id)
     return response
