@@ -1,4 +1,5 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
+import { StatIRS } from "utils/global.enum";
 
 @Schema({
   timestamps: true
@@ -25,7 +26,8 @@ export class PKL {
   lulusAt: Date;
 
   @Prop({
-    default: null
+    default: StatIRS.UNVERIFIED,
+    enum: Object.values(StatIRS)
   })
   isVerified: boolean;
 }
@@ -57,9 +59,10 @@ export class Skripsi {
   lulusAt: Date;
 
   @Prop({
-    default: null
+    default: StatIRS.UNVERIFIED,
+    enum: Object.values(StatIRS)
   })
-  isVerified: boolean;
+  isVerified: string;
 }
 
 export const SkripsiSchema = SchemaFactory.createForClass(Skripsi)

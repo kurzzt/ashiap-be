@@ -197,7 +197,7 @@ export class MhsService {
   }
 
   async createMhs(mhs: CreateMhsDto) {
-    const { nim, email, YoE, AR, status, desc, dosWalName } = mhs
+    const { nim, name, email, YoE, AR, status, desc, dosWalName } = mhs
 
     const validateDosWal = await this.userService.validateSecDB(dosWalName.toString())
     if (!validateDosWal) throw new NotFoundException(`Cant find the DosWal with ${dosWalName} IDs`)
@@ -315,13 +315,13 @@ export class MhsService {
   async findMhsPKLById(id: string) {
     const { pkl } = await this.mhsModel.findById(id, 'pkl -_id')
     if (!pkl) return pkl
-    else return await this.pklModel.findById(pkl, '_id passed nilai fileURL lulusAt')
+    else return await this.pklModel.findById(pkl, '-__v')
   }
 
   async findMhsSkripsiById(id: string) {
     const { skripsi } = await this.mhsModel.findById(id)
     if (!skripsi) return skripsi
-    else return await this.skripsiModel.findById(skripsi, '_id passed nilai fileURL lulusAt')
+    else return await this.skripsiModel.findById(skripsi, '-__v')
   }
 
 
