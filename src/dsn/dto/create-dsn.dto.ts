@@ -8,48 +8,48 @@ export class CreateDsnDto {
   @IsNotEmpty()
   @IsNumberString()
   @IsNIPUnique()
-  readonly nip : string
+  readonly nip: string
 
   @IsNotEmpty()
   @IsString()
-  readonly name : string
-  
+  readonly name: string
+
   @IsNotEmpty()
   @IsEmail()
   @IsEmailUnique()
-  readonly email : string
+  readonly email: string
 
   @IsNotEmpty()
   @IsEnum(SEX)
-  readonly gender : string
+  readonly gender: string
 
   @IsNotEmpty()
   @IsEnum(POS)
-  readonly position : string
+  readonly position: string
 
   @IsNotEmpty()
   @IsEnum(eduLev)
-  readonly eduLevel : string
+  readonly eduLevel: string
 
   @IsNotEmpty()
   @IsEnum(jobStat)
-  readonly jobStat : string
+  readonly jobStat: string
 
   @IsNotEmpty()
   @IsMobilePhone()
-  readonly noTelp : string
+  readonly noTelp: string
 
   @IsDefined()
   @IsString()
-  readonly address : string
+  readonly address: string
 
   @IsNotEmpty()
   @IsString()
-  readonly province : string
+  readonly province: string
 
   @IsDefined()
   @IsString()
-  readonly desc : string
+  readonly desc: string
 
   @IsNotEmpty()
   @IsObject()

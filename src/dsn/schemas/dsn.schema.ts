@@ -2,7 +2,8 @@ import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { POS, SEX, eduLev, jobStat } from "utils/global.enum";
 
 @Schema({
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 export class DSN {
   @Prop({
@@ -10,12 +11,12 @@ export class DSN {
     unique: [true, 'NIP must be unique']
   })
   nip: string;
-  
+
   @Prop({
     required: [true, 'Name Information required'],
   })
   name: string;
-  
+
   @Prop({
     required: [true, 'Gender Information required'],
     enum: Object.values(SEX)
@@ -27,7 +28,7 @@ export class DSN {
     enum: Object.values(POS)
   })
   position: string;
-  
+
   @Prop({
     required: [true, 'Education Level Information required'],
     enum: Object.values(eduLev)
@@ -39,12 +40,12 @@ export class DSN {
     enum: Object.values(jobStat)
   })
   jobStat: string;
-  
+
   @Prop({
     required: [true, 'NoTelp Information required']
   })
   noTelp: string;
-  
+
   @Prop({
     default: ''
   })

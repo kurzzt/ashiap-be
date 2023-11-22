@@ -13,12 +13,7 @@ export class AdmService {
 
   async createAdm(adm : CreateAdmDto){
     const { name, noTelp, address, desc } = adm
-    const response = await this.admModel.create({
-      name : name,
-      noTelp: noTelp,
-      address: address,
-      desc: desc,
-    })
+    const response = await this.admModel.create({ name, noTelp, address, desc })
     
     return response
   }

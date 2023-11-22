@@ -1,14 +1,15 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 
 @Schema({
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 export class DEPT {
   @Prop({
     required: [true, 'Name Information required'],
   })
   name: string;
-  
+
   @Prop({
     required: [true, 'NoTelp Information required']
   })

@@ -1,9 +1,9 @@
-import { IsBoolean, IsIn, IsNotEmpty, IsNumber, Max, Min } from "class-validator";
-import { StatIRS } from "utils/global.enum";
+import { IsIn, IsNotEmpty, IsNumber, Max, Min } from "class-validator";
+import { StatAP } from "utils/global.enum";
 
 export class VerifyIRSDto {
   @IsNotEmpty()
-  @IsIn([StatIRS.VERIFIED, StatIRS.FAILED])
+  @IsIn([StatAP.VERIFIED, StatAP.FAILED])
   readonly status: string
 
   @IsNotEmpty()
@@ -15,7 +15,7 @@ export class VerifyIRSDto {
 
 export class VerifyKHSDto {
   @IsNotEmpty()
-  @IsIn([StatIRS.VERIFIED, StatIRS.FAILED])
+  @IsIn([StatAP.VERIFIED, StatAP.FAILED])
   readonly status: string
   
   @IsNotEmpty()
@@ -27,12 +27,12 @@ export class VerifyKHSDto {
 
 export class VerifyPKLDto {
   @IsNotEmpty()
-  @IsBoolean()
-  readonly passed: boolean
+  @IsIn([ StatAP.VERIFIED, StatAP.FAILED])
+  readonly isVerified: string
 }
 
 export class VerifySkripsiDto {
   @IsNotEmpty()
-  @IsBoolean()
-  readonly passed: boolean
+  @IsIn([ StatAP.VERIFIED, StatAP.FAILED])
+  readonly isVerified: string
 }

@@ -8,7 +8,6 @@ import { faker } from '@faker-js/faker';
 import { Query } from 'express-serve-static-core';
 import { genParam } from 'utils/filter';
 import { CoreResponseData } from 'utils/CoreResponseData';
-// import { MhsService } from 'src/mhs/mhs.service';
 
 @Injectable()
 export class DsnService {
@@ -16,35 +15,28 @@ export class DsnService {
     @InjectModel(DSN.name)
     private dsnModel: Model<DSN>,
     private userService: UserService,
-    // private mhsService: MhsService
   ) { }
 
   async validateNIP(nip: string){ return await this.dsnModel.findOne({ nip }) }
+  async isExist(id: string){ return await this.dsnModel.findById(id)}
 
   async createDsn(dsn: CreateDsnDto){
-    try {
-      const {
-        nip, name, email, gender, position,
-        eduLevel, jobStat, noTelp, address,
-        province, desc, photoURL } = dsn
+    const {
+      nip, name, email, gender, position,
+      eduLevel, jobStat, noTelp, address,
+      province, desc, photoURL } = dsn
 
-      const createDsn = await this.dsnModel.create({
-        nip, name, gender, position,
-        eduLevel, jobStat, noTelp, address,
-        province, desc, 
-        photoURL : photoURL.preview
-      })
+    const createDsn = await this.dsnModel.create({
+      nip, name, gender, position, eduLevel, jobStat, noTelp, address, province, desc, 
+      photoURL : photoURL.preview
+    })
 
-      const randomPass = faker.internet.password({ length: 12 }); // Randomized password
-      const createSecDsn = await this.userService.createSecDB(createDsn._id, email, randomPass)
-
-      return createDsn
-    } catch (err) {
-      throw new BadRequestException()
-    }
+    const randomPass = faker.internet.password({ length: 12 })
+    await this.userService.createUser_sec(createDsn._id, email, randomPass)
+    return createDsn
   }
 
-  async findAllDsn(q: Query) {
+  async listDsn(q: Query) {
     const filter: Record<string, any> = {
       position : String,
       eduLevel : String, 
@@ -55,12 +47,12 @@ export class DsnService {
 
     const { limit, skip, params, sort } = genParam(q, filter)
     const count = await this.dsnModel.countDocuments(params)
-    const response = await this.dsnModel.find(params, '-__v').limit(limit).skip(skip).sort(sort)
+    const response = await this.dsnModel.find(params).limit(limit).skip(skip).sort(sort)
     return new CoreResponseData(count, limit, response)
   }
 
-  async findDsnById(id: string): Promise<DSN>{
-    const response = await this.dsnModel.findById(id, '-__v')
+  async findDsn(id: string): Promise<DSN>{
+    const response = await this.dsnModel.findById(id)
     if(response) return response
     else throw new BadRequestException(`Cant find User with ${id} IDs`)
   }
@@ -72,8 +64,8 @@ export class DsnService {
     return response
   }
 
-  async deleteDsnById(id: string){
-    const validate = await this.findDsnById(id)
+  async deleteDsn(id: string){
+    const validate = await this.isExist(id)
     if (!validate) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
     try {
@@ -85,8 +77,8 @@ export class DsnService {
       // const randomDsnId = filteredArray[Math.floor(Math.random() * filteredArray.length)];
       // await this.mhsService.moveManyMhsToOtherDsn(id, randomDsnId)
 
-      await this.userService.deleteUserByUserId(id)
-      await this.userService.deleteSecDBById(id)
+      await this.userService.deleteByUser(id)
+      await this.userService.delete_sec(id)
       const response = await this.dsnModel.findByIdAndDelete(id)
       return response
 

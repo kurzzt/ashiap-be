@@ -15,4 +15,4 @@ import { DeptSchema } from './schemas/dept.schema';
   providers: [DeptService],
   exports: [DeptService]
 })
-export class DeptModule {}
+export class DeptModule { }

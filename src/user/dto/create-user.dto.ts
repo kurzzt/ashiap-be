@@ -1,5 +1,4 @@
 import { IsDefined, IsEmail, IsEnum, IsMobilePhone, IsMongoId, IsNotEmpty, IsString, ValidateIf } from "class-validator";
-import { ObjectId } from "mongoose";
 import { ROLE } from "utils/global.enum";
 import { IsEmailUnique } from "utils/uniqueMail.decorator";
 
@@ -37,5 +36,5 @@ export class CreateUserDto {
   @ValidateIf(o => (o.role == ROLE.MHS || o.role == ROLE.DSN))
   @IsNotEmpty()
   @IsMongoId()
-  readonly userId: ObjectId;
+  readonly user: string;
 }

@@ -13,35 +13,35 @@ import { Query as ExpressQuery } from 'express-serve-static-core';
 @Roles(ROLE.ADM)
 @UseInterceptors(TransformInterceptor)
 export class UserController {
-  constructor(private readonly userService: UserService){}
+  constructor(private readonly userService: UserService) { }
 
   @Post()
   @ResponseMessage('Successfully Add New User')
-  async createUser(
-    @Body() User: CreateUserDto
-  ){
-    return this.userService.createUsers(User)
+  async create(
+    @Body() body: CreateUserDto
+  ) {
+    return this.userService.createUser(body)
   }
 
   @Get()
   @ResponseMessage('Successfully Get All User')
-  async findAllUser(
+  async list(
     @Query() q: ExpressQuery
-  ){
-    return this.userService.findAlluser(q)
+  ) {
+    return this.userService.listUser(q)
   }
 
   @Get(':id')
   @ResponseMessage('Successfully Get Data User')
-  async findUserById(
+  async find(
     @Param('id') id: string
-  ){
-    return this.userService.findUserById(id)
+  ) {
+    return this.userService.findUser(id)
   }
 
   @Delete(':id')
   @ResponseMessage('Successfully Delete Data User')
-  async deleteUserOPById(
+  async delete(
     @Param('id') id: string
   ){
     return this.userService.deleteUser(id)

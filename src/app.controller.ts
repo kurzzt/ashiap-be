@@ -23,6 +23,7 @@ export class AppController {
     return this.appService.getHello();
   }
 
+  //FIXME: LOGIN USING EMAIL AND NIM OR NIP
   @Public()
   @ResponseMessage('Logged In')
   @Post('login')
@@ -52,6 +53,7 @@ export class AppController {
     return this.appService.uploadSingleFile(file)
   }
 
+  // FIXME: DASHBOARD RETURN FIX VALUE WHEN TOTAL DOC 0 
   @Get('dashboard')
   @ResponseMessage('Dashboard')
   async dashboard(

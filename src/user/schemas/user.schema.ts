@@ -3,7 +3,8 @@ import { ObjectId, Types } from "mongoose";
 import { ROLE } from "utils/global.enum";
 
 @Schema({
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 export class User {
   @Prop({
@@ -12,16 +13,18 @@ export class User {
     unique: [true, 'User Already made'],
     refPath: 'role'
   })
-  userId: ObjectId;
+  user: ObjectId;
 
   @Prop({
-    required: [true, 'Email Information required'],
-    unique: [true, 'Email Already used']
+    // required: [true, 'Email Information required'],
+    // unique: [true, 'Email Already used']]
+    default: null
   })
   email: string;
   
   @Prop({
-    required: [true, 'Password Information required'],
+    // required: [true, 'Password Information required'],
+    default: null,
     select : false
   })
   password: string;

@@ -33,6 +33,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
 
         try {
             const payload = this.jwtService.verify( token, { secret: this.config.get<string>('JWT_SECRET') })
+            //FIXME: fix this
             const { role } = await this.userService.findUser(payload.sub)
             request['user'] = { ...payload, roles: role }
         } catch (err) {

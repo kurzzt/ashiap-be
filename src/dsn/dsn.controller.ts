@@ -18,35 +18,35 @@ export class DsnController {
 
   @Post()
   @ResponseMessage('Successfully Add New Dosen')
-  async createDsn(
-    @Body() Dsn: CreateDsnDto
+  async create(
+    @Body() body: CreateDsnDto
   ) {
-    return this.dsnService.createDsn(Dsn)
+    return this.dsnService.createDsn(body)
   }
 
   @Get()
   @Roles(ROLE.DEPT)
   @ResponseMessage('Successfully Get All Dosen')
-  async getAllDsn(
+  async list(
     @Query() q: ExpressQuery
   ) {
-    return this.dsnService.findAllDsn(q)
+    return this.dsnService.listDsn(q)
   }
 
   @Get(':id')
   @Roles(ROLE.DEPT, ROLE.DSN)
   @ResponseMessage('Successfully Get Data Dosen')
-  async getMhsById(
+  async find(
     @Param('id') id: string
   ): Promise<DSN> {
-    return this.dsnService.findDsnById(id)
+    return this.dsnService.findDsn(id)
   }
 
   @Delete(':id')
   @ResponseMessage('Successfully Delete Data Dosen')
-  async deleteDsnById(
+  async delete(
     @Param('id') id: string
   ) {
-    return this.dsnService.deleteDsnById(id)
+    return this.dsnService.deleteDsn(id)
   }
 }

@@ -1,13 +1,14 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
-import { StatIRS } from "../../../utils/global.enum";
+import { StatAP } from "utils/global.enum";
 
 @Schema({
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 export class IRS {
   @Prop({
-    required: [true, 'Status Information required'],
-    enum: Object.values(StatIRS)
+    default: StatAP.NOT_UPLOADED,
+    enum: Object.values(StatAP)
   })
   status: string;
 
@@ -19,6 +20,7 @@ export class IRS {
   semester: number;
 
   @Prop({
+    default: null,
     min: 0,
     max: 24
   })
@@ -30,7 +32,11 @@ export class IRS {
   fileURL: string;
 
   @Prop({
-    type: { ipk: Number, fileURL: String, status: String },
+    type: { 
+      ipk: Number, 
+      fileURL: String, 
+      status: String 
+    },
     _id: false
   })
   khs: { ipk: number, fileURL: string, status: string };

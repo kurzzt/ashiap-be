@@ -1,4 +1,4 @@
-export enum StatIRS {
+export enum StatAP {
   NOT_UPLOADED = 'Not Uploaded',
   UNVERIFIED = 'Unverified',
   VERIFIED = 'Verified',

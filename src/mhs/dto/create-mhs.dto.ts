@@ -1,7 +1,5 @@
-import { IsDefined, IsEmail, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsNumberString, IsString } from "class-validator";
-import { StatMhs, AR } from "../../../utils/global.enum";
-import { ObjectId } from 'mongoose';
-import { IsEmailUnique } from "utils/uniqueMail.decorator";
+import { IsDefined, IsEnum, IsMongoId, IsNotEmpty, IsNumber, IsNumberString, IsString } from "class-validator";
+import { StatMhs } from "../../../utils/global.enum";
 import { IsNIMUnique } from "../uniqueNIM.decorator";
 
 export class CreateMhsDto {
@@ -15,17 +13,8 @@ export class CreateMhsDto {
   readonly name: string
 
   @IsNotEmpty()
-  @IsEmail()
-  @IsEmailUnique()
-  readonly email: string
-
-  @IsNotEmpty()
   @IsNumber()
   readonly YoE: number
-  
-  @IsNotEmpty()
-  @IsEnum(AR)
-  readonly AR: string
 
   @IsNotEmpty()
   @IsEnum(StatMhs)
@@ -37,5 +26,5 @@ export class CreateMhsDto {
 
   @IsNotEmpty()
   @IsMongoId()
-  readonly dosWalName: ObjectId
+  readonly doswal_id: string
 }

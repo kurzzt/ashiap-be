@@ -14,15 +14,17 @@ export class AppService {
    ){}
 
   async signIn(body: LoginDto): Promise<any>{
-    const { email, password } = body
-    const user = await this.userService.findByEmail(email)
+    const { identifier, password } = body
+    
+    // FIXME: using different 
+    const user = await this.userService.login(identifier)
     // console.log(user)
     // console.log(body)
     if(!Object.keys(user || {}).length) throw new UnauthorizedException('Invalid email or password')
     const isPasswordMatched = await bcrypt.compare(password, user.password)
     if(!isPasswordMatched) throw new UnauthorizedException('Invalid email or password')
     
-    const payload = { sub: user['userId_id'] }
+    const payload = { sub: user['user_id'] }
     return {
       user: user,
       access_token: await this.jwtService.signAsync(payload),

@@ -9,22 +9,15 @@ export class DeptService {
   constructor(
     @InjectModel(DEPT.name)
     private deptModel: Model<DEPT>
-  ){}
+  ) { }
 
-  async createDept(dept: CreateDeptDto){
+  async createDept(dept: CreateDeptDto) {
     const { name, noTelp, address, desc } = dept
-    const response = await this.deptModel.create({
-      name : name,
-      noTelp: noTelp,
-      address: address,
-      desc: desc,
-    })
-
+    const response = await this.deptModel.create({ name, noTelp, address, desc })
     return response
   }
 
-
-  async deleteDeptById(id: string){
+  async deleteDeptById(id: string) {
     const response = await this.deptModel.findByIdAndDelete(id)
     return response
   }

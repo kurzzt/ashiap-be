@@ -22,10 +22,10 @@ export class MhsController {
 
   @Post()
   @ResponseMessage('Successfully Add New Mahasiswa')
-  async createMhs(
-    @Body() Mhs: CreateMhsDto
+  async create(
+    @Body() body: CreateMhsDto
   ) {
-    return this.mhsService.createMhs(Mhs)
+    return this.mhsService.createMhs(body)
   }
 
   // @Post('csv')
@@ -47,177 +47,182 @@ export class MhsController {
   //   return this.mhsService.bulkDataMhs(file)
   // }
 
-  // GET CONTEXT
   @Put(':id')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Update Data Mahasiswa')
-  async updateMhs(
+  async update(
     @Param('id', ValidateMhsParamId) id: string,
     @Body() body: UpdateMhsDto
   ) {
     return this.mhsService.updateMhs(id, body)
   }
 
+  // FIXME: query
   @Get()
   @Roles(ROLE.DEPT, ROLE.DSN)
   @ResponseMessage('Successfully Get All Mahasiswa')
-  async getAllMhs(
+  async list(
     @Query() q: ExpressQuery
   ) {
-    return this.mhsService.findAllMhs(q)
+    return this.mhsService.listMhs(q)
   }
 
   @Get(':id')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data Mahasiswa')
-  async getMhsById(
+  async find(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.findMhsById(id)
+    return this.mhsService.findMhs(id)
   }
 
   @Get(':id/irs')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data IRS of Specific Mahasiswa IDs')
-  async getMhsIRS(
+  async findIRS(
     @Query() q: ExpressQuery,
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.findMhsIRSById(q, id)
+    return this.mhsService.findMhsIRS(q, id)
   }
-
 
   @Get(':id/khs')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data KHS of Specific Mahasiswa IDs')
-  async getMhsKHS(
+  async findKHS(
     @Query() q: ExpressQuery,
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.findMhsKHSById(q, id)
+    return this.mhsService.findMhsKHS(q, id)
   }
 
+  //FIXME: return data with defined format that have currsks
   @Get(':id/pkl')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data PKL of Specific Mahasiswa IDs')
-  async getMhsPKL(
+  async findPKL(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsPKLById(id)
   }
 
+  //FIXME: return data with defined format that have currsks
   @Get(':id/skripsi')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data Skripsi of Specific Mahasiswa IDs')
-  async getMhsSkripsi(
+  async findSkripsi(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
     return this.mhsService.findMhsSkripsiById(id)
   }
 
+  //FIXME: dont send throw new error, send data with defined format
   @Post(':id/pkl')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take PKL')
   async createPKL(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.createPKL(id)
+    return this.mhsService.createPKLMhs(id)
   }
 
+  //FIXME: dont send throw new error, send data with defined format
   @Post(':id/skripsi')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take Skripsi')
   async createSkripsi(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.createSkripsi(id)
+    return this.mhsService.createSkripsiMhs(id)
   }
 
   @Put(':id/irs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data IRS')
-  async updateIRSMhs(
+  async updateIRS(
     @Param('id', ValidateMhsParamId) id: string,
-    @Body() data: UpdateIRSDto
+    @Body() body: UpdateIRSDto
   ) {
-    return this.mhsService.updateIRS(id, data)
+    return this.mhsService.updateIRSMhs(id, body)
   }
 
   @Put(':id/khs')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data KHS')
-  async updateKHSMhs(
+  async updateKHS(
     @Param('id', ValidateMhsParamId) id: string,
-    @Body() data: UpdateKHSDto,
+    @Body() body: UpdateKHSDto,
   ) {
-    return this.mhsService.updateKHS(id, data)
+    return this.mhsService.updateKHSMhs(id, body)
   }
 
+  //FIXME: isverified flow
   @Put(':id/pkl')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data PKL')
-  async updatePKLMhs(
+  async updatePKL(
     @Param('id', ValidateMhsParamId) id: string,
-    @Body() data: UpdatePKLDto
+    @Body() body: UpdatePKLDto
   ) {
-    return this.mhsService.updatePKL(id, data);
+    return this.mhsService.updatePKL(id, body);
   }
 
+  //FIXME: isverified flow
   @Put(':id/skripsi')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data Skripsi')
-  async updateSkripsiMhs(
+  async updateSkripsi(
     @Param('id', ValidateMhsParamId) id: string,
-    @Body() data: UpdateSkripsiDto
+    @Body() body: UpdateSkripsiDto
   ) {
-    return this.mhsService.updateSkripsi(id, data)
+    return this.mhsService.updateSkripsi(id, body)
   }
 
   @Put(':id/irs/verify')
   @Roles(ROLE.DSN)
   @ResponseMessage('Successfully Verify Data IRS')
-  async verifyIRSMhs(
+  async verifyIRS(
     @Param('id', ValidateMhsParamId) id: string,
     @Body() body: VerifyIRSDto,
   ) {
-    return this.mhsService.verifyIRS(id, body)
+    return this.mhsService.verifyIRSMhs(id, body)
   }
 
   @Put(':id/khs/verify')
   @Roles(ROLE.DSN)
   @ResponseMessage('Successfully Verify Data KHS')
-  async verifyKHSMhs(
+  async verifyKHS(
     @Param('id', ValidateMhsParamId) id: string,
     @Body() body: VerifyKHSDto,
   ) {
-    return this.mhsService.verifyKHS(id, body)
+    return this.mhsService.verifyKHSMhs(id, body)
   }
 
   @Put(':id/pkl/verify')
   @Roles(ROLE.DSN)
   @ResponseMessage('Successfully Verify Data PKL')
-  async verifyPKLMhs(
+  async verifyPKL(
     @Param('id', ValidateMhsParamId) id: string,
     @Body() body: VerifyPKLDto
   ) {
-    return this.mhsService.verifyPKL(id, body);
+    return this.mhsService.verifyPKLMhs(id, body);
   }
 
   @Put(':id/skripsi/verify')
   @Roles(ROLE.DSN)
   @ResponseMessage('Successfully Verify Data Skripsi')
-  async verifySkripsiMhs(
+  async verifySkripsi(
     @Param('id', ValidateMhsParamId) id: string,
     @Body() body: VerifySkripsiDto
   ) {
-    return this.mhsService.verifySkripsi(id, body)
+    return this.mhsService.verifySkripsiMhs(id, body)
   }
 
   @Delete(':id')
   @ResponseMessage('Successfully Delete Data Mahasiswa')
-  async deleteMhsById(
+  async delete(
     @Param('id', ValidateMhsParamId) id: string,
   ) {
-    return this.mhsService.deleteMhsById(id)
+    return this.mhsService.deleteMhs(id)
   }
 }

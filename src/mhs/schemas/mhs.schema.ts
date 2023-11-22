@@ -3,7 +3,8 @@ import { ObjectId, Types } from "mongoose";
 import { SEX, StatMhs, AR } from "../../../utils/global.enum";
 
 @Schema({
-  timestamps: true
+  timestamps: true,
+  versionKey: false
 })
 export class MHS {
   @Prop({
@@ -18,20 +19,17 @@ export class MHS {
   name: string;
 
   @Prop({
-    // required: [true, 'Gender Information required'],
     default: null,
     enum: Object.values(SEX)
   })
   gender: string
   
   @Prop({
-    // default: ""
     default: null,
   })
   address: string;
 
   @Prop({
-    // required: [true, "Provinsi Information required"]
     default: null,
   })
   province: string;
@@ -42,13 +40,12 @@ export class MHS {
   YoE: number;
 
   @Prop({
-    required: [true, "Jalur Masuk Information required"],
+    default: null,
     enum: Object.values(AR)
   })
   AR: string;
 
   @Prop({
-    // required: [true, "NoTelp Information required"]
     default: null,
   })
   noTelp: string;
@@ -66,34 +63,31 @@ export class MHS {
 
   @Prop({
     type: Types.ObjectId, ref: "IRS",
-    // required: [true, "IRS Information Required"],
   })
   irs: ObjectId[];
   
   @Prop({
     type: Types.ObjectId, ref: "PKL",
-    // required: [true, "PKL Information Required"],
     default: null
   })
   pkl: ObjectId;
 
   @Prop({
     type: Types.ObjectId, ref: "Skripsi",
-    // required: [true, "Script Information Required"],
     default: null
   })
   skripsi: ObjectId;
 
   @Prop({
-    required: [true, 'PhotoURL required']
+    default: ""
   })
   photoURL: string
 
   @Prop({
     type: Types.ObjectId, ref: "DSN",
-    // required: [true, "Need to be bind with Academic Advisor"],
+    required: [true, "Need to be bind with Academic Advisor"]
   })
-  dosWal: ObjectId;
+  doswal: ObjectId;
 
   @Prop({
     default: false

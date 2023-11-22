@@ -13,7 +13,7 @@ export class IsEmailUniqueConstraint implements ValidatorConstraintInterface {
     private userService: UserService
   ) {}
   async validate(value: any, args: ValidationArguments) {
-    const valid = await this.userService.validateByEmailSecDB(value).then(user => {
+    const valid = await this.userService.isExistByEmail_sec(value).then(user => {
       if (user) return false;
       return true;
     })
