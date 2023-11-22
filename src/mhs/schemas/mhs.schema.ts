@@ -20,7 +20,7 @@ export class MHS {
 
   @Prop({
     default: null,
-    enum: Object.values(SEX)
+    // enum: Object.values(SEX)
   })
   gender: string
   
@@ -79,7 +79,7 @@ export class MHS {
   skripsi: ObjectId;
 
   @Prop({
-    default: ""
+    required: [true, 'PhotoURL required']
   })
   photoURL: string
 
