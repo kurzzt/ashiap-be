@@ -57,33 +57,13 @@ export class DsnService {
     else throw new BadRequestException(`Cant find User with ${id} IDs`)
   }
 
-  private async arrayOfDsnActiveId() {
-    const arrOfObjId = await this.dsnModel.find({ active: true }, '_id')
-    const response = arrOfObjId.map(item => item._id.toString());
-
-    return response
-  }
-
   async deleteDsn(id: string){
     const validate = await this.isExist(id)
     if (!validate) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
-    try {
-      // const arrayofDsn = await this.arrayOfDsnActiveId()
-      // const filteredArray = arrayofDsn.filter(dsnId => dsnId !== id);
-      // if (filteredArray.length === 0) {
-      //   throw new BadRequestException(`Tidak ada dosen lain yang tersedia.`);
-      // }
-      // const randomDsnId = filteredArray[Math.floor(Math.random() * filteredArray.length)];
-      // await this.mhsService.moveManyMhsToOtherDsn(id, randomDsnId)
-
-      await this.userService.deleteByUser(id)
-      await this.userService.delete_sec(id)
-      const response = await this.dsnModel.findByIdAndDelete(id)
-      return response
-
-    } catch (err) {
-      throw new BadRequestException()
-    }
+    await this.userService.deleteByUser(id)
+    await this.userService.delete_sec(id)
+    const response = await this.dsnModel.findByIdAndDelete(id)
+    return response
   }
 }

@@ -1,7 +1,9 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { Types } from "mongoose";
 
-@Schema()
+@Schema({
+  versionKey: false
+})
 export class secDB {
   @Prop({
     type: Types.ObjectId,
@@ -10,11 +12,10 @@ export class secDB {
   _id: Types.ObjectId;
   
   @Prop({
-    required: [true, 'Email Information required'],
-    unique: [true, "Email Already used"]
+    default: null
   })
   email: string;
-  
+
   @Prop({
     required: [true, 'Password Information required']
   })

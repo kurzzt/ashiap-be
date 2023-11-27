@@ -3,12 +3,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import * as csv from 'csv-parser';
 import { Query } from 'express-serve-static-core';
-import { Model, Types } from 'mongoose';
+import { Model, PipelineStage, Types } from 'mongoose';
 import { UserService } from 'src/user/user.service';
 import { CoreResponseData } from 'utils/CoreResponseData';
 import { flattenObject } from 'utils/common';
 import { genParam } from 'utils/filter';
-import { StatAP } from 'utils/global.enum';
+import { ROLE, StatAP } from 'utils/global.enum';
 import { CreateMhsDto } from './dto/create-mhs.dto';
 import { UpdateIRSDto, UpdateKHSDto } from './dto/update-irs-khs.dto';
 import { UpdateMhsDto } from './dto/update-mhs.dto';
@@ -18,9 +18,9 @@ import { IRS } from './schemas/irs.schema';
 import { MHS } from './schemas/mhs.schema';
 import { PKL, Skripsi } from './schemas/pkl-skripsi.schema';
 import { DsnService } from 'src/dsn/dsn.service';
+import { UserEntity } from 'utils/globals';
 
 import * as bcrypt from 'bcrypt';
-var mongoose = require('mongoose');
 import toStream = require('buffer-to-stream');
 
 @Injectable()
@@ -40,108 +40,11 @@ export class MhsService {
 
   async validateNIM(nim: string) { return await this.mhsModel.findOne({ nim }) }
   async validateParamId(id: string) { return await this.mhsModel.findById(id) }
+  async isExist(id: string) { return await this.mhsModel.findById(id) }
 
-  // private async statTotal(dosWal_id?: string) {
-  //   let coreQuery: PipelineStage[] = []
-  //   if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-  //   const response = await this.mhsModel.aggregate(coreQuery).sortByCount('status')
-  //   return response
-  // }
-
-  // private async statMhsBasedOnAR(dosWal_id?: string) {
-  //   let coreQuery: PipelineStage[] = []
-  //   if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-  //   return await this.mhsModel.aggregate(coreQuery).sortByCount('AR')
-  // }
-
-  // private async statSkripsiBasedOnYoE(dosWal_id?: string) {
-  //   let coreQuery: PipelineStage[] = [{
-  //     $group: {
-  //       _id: {
-  //         YoE: '$YoE',
-  //         status: { $cond: [{ $eq: ["$skripsi", null] }, "Taken", "Untaken"] },
-  //       },
-  //       count: { $count: {} }
-  //     }
-  //   }]
-
-  //   if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-  //   const response = await this.mhsModel.aggregate(coreQuery)
-  //   return response.map(x => flattenObject(x))
-  // }
-
-  // private async statPKLBasedOnYoE(dosWal_id?: string) {
-  //   let coreQuery: PipelineStage[] = [{
-  //     $group: {
-  //       _id: {
-  //         YoE: '$YoE',
-  //         status: { $cond: [{ $eq: ["$pkl", null] }, "Taken", "Untaken"] },
-  //       },
-  //       count: { $count: {} }
-  //     }
-  //   }]
-
-  //   if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-  //   const query = await this.mhsModel.aggregate(coreQuery)
-  //   const response = query.map(x => flattenObject(x))
-  //   return response
-  // }
-
-  // private async currSem(id: string) {
-  //   const { irs } = await this.mhsModel.findById(id)
-
-  //   const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) }, status: StatIRS.VERIFIED }
-  //   const count = await this.irsModel.countDocuments({ ...param })
-
-  //   return count || 0
-  // }
-
-  // async dashboard(user: UserEntity): Promise<any> {
-  //   const { sub, roles } = user;
-
-  //   // const statMhs = (roles === ROLE.DSN) ? await this.statTotal(sub) : await this.statTotal()
-  //   // const statPKL = (roles === ROLE.DSN) ? await this.statPKLBasedOnYoE(sub) : await this.statPKLBasedOnYoE()
-  //   // const statSkripsi = (roles === ROLE.DSN) ? await this.statSkripsiBasedOnYoE(sub) : await this.statSkripsiBasedOnYoE()
-  //   // const statMhsAR = (roles === ROLE.DSN) ? await this.statMhsBasedOnAR(sub) : await this.statMhsBasedOnAR()
-
-  //   const statMhs = await this.statTotal()
-  //   const statPKL = await this.statPKLBasedOnYoE()
-  //   const statSkripsi = await this.statSkripsiBasedOnYoE()
-  //   const statMhsAR = await this.statMhsBasedOnAR()
-
-  //   if (roles === ROLE.MHS) {
-  //     const currSKS = await this.currSKS(sub.toString()) //Current total SKS verified
-  //     const cummIPK = await this.cummIPK(sub.toString()) // cumulative IPK that verified
-  //     const user = await this.findMhsById(sub.toString())
-  //     const currSem = await this.currSem(sub.toString()) //active semester
-
-  //     return { user, currSem, currSKS, cummIPK }
-  //   } else if (roles === ROLE.DSN) {
-  //     const user = await this.dsnService.findDsnById(sub.toString())
-  //     return { user, statMhs, statMhsAR, statPKL, statSkripsi }
-  //   } else {
-  //     return { statMhs, statMhsAR, statPKL, statSkripsi }
-  //   }
-  // }
-
-  // private async cummIPK(id: string) {
-  //   const { irs } = await this.mhsModel.findById(id)
-  //   const response = await this.irsModel.aggregate([{
-  //     $match: { _id: { $in: irs.map(irsItem => irsItem) }, 'khs.status': StatIRS.VERIFIED }
-  //   }, {
-  //     $group: {
-  //       _id: null,
-  //       avgIPK: { $avg: "$khs.ipk" },
-  //       count: { $sum: 1 }
-  //     }
-  //   }
-  //   ])
-  //   return response[0]?.avgIPK || 0
-  // }
+  // =========================================
+  // NOTE: CREATE
+  // =========================================
 
   private async createIRS(semester: number) {
     return await this.irsModel.create({
@@ -176,10 +79,10 @@ export class MhsService {
   }
 
   async createMhs(mhs: CreateMhsDto) {
-    const { nim, email, YoE, AR, status, desc, dosWalName } = mhs
+    const { nim, name, YoE, status, desc, doswal_id } = mhs
 
-    const validateDosWal = await this.userService.validateSecDB(dosWalName.toString())
-    if (!validateDosWal) throw new NotFoundException(`Cant find the DosWal with ${dosWalName} IDs`)
+    const validateDosWal = await this.userService.isExist_sec(doswal_id.toString())
+    if (!validateDosWal) throw new NotFoundException(`Cant find the DosWal with ${doswal_id} IDs`)
 
     let irsLot = []
     for (let i = 1; i < 15; i++) {
@@ -195,23 +98,10 @@ export class MhsService {
 
     const randomPass = faker.internet.password({ length: 12 })
     const hashPass = await bcrypt.hash(randomPass, 10)
-    await this.userService.createUser_sec(createMhs._id, randomPass)
+    await this.userService.createUser_sec(createMhs._id, "", randomPass)
     await this.userService.createUser_mhs(createMhs._id, hashPass)
 
     return createMhs
-  }
-
-  async updateMhs(id: string, body: UpdateMhsDto) {
-    const { email, AR, gender, address, province, noTelp, photoURL } = body
-    const response = await this.mhsModel.findByIdAndUpdate(
-      id,
-      {
-        email, AR, gender, address, province, noTelp,
-        photoURL: photoURL.preview,
-        check: true
-      }, { new: true, runValidators: true }
-    )
-    return response
   }
 
   async bulkDataMhs(file: Express.Multer.File) {
@@ -240,101 +130,24 @@ export class MhsService {
     }
   }
 
-  // FIXME: query
-  // passed_skripsi=true
-  // verified_skripsi=Unverified (special case)
-  async listMhs(q: Query) {
-    const filter: Record<string, any> = {
-      YoE: Number,
-      AR: String,
-      status: String,
-      doswal: Object,
-      gender: String,
-      search: ['name', 'nim']
-    }
+  // =========================================
+  // NOTE: UPDATE
+  // =========================================
 
-    const { limit, skip, params, sort } = genParam(q, filter)
-    const count = await this.mhsModel.countDocuments(params)
-    const query = await this.mhsModel.find(params, '-irs').populate('dosWal', 'name _id').limit(limit).skip(skip).sort(sort)
+  async updateMhs(id: string, body: UpdateMhsDto) {
+    const { email, AR, gender, address, province, noTelp, photoURL } = body
+    const response = await this.mhsModel.findByIdAndUpdate(
+      id,
+      {
+        AR, gender, address, province, noTelp,
+        photoURL: photoURL.preview,
+        check: true
+      }, { new: true, runValidators: true }
+    )
 
-    const response = query.map(obj => flattenObject(obj))
-    return new CoreResponseData(count, limit, response)
+    await this.userService.updateUser_mhs((response._id).toString(), email)
+    return response
   }
-
-  async findMhs(id: string) {
-    const query = await this.mhsModel.findById(id, '-irs -khs -pkl -skripsi').populate('doswal', 'name _id')
-    return flattenObject(query)
-  }
-
-  async findMhsIRS(q: Query, id: string) {
-    const filter = {
-      status: String,
-      semester: Number,
-      sks: Number,
-    }
-
-    const { limit, skip, params, sort } = genParam(q, filter)
-    const { irs } = await this.mhsModel.findById(id, 'irs -_id')
-
-    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
-    const count = await this.irsModel.countDocuments({ ...param, ...params })
-    const response = await this.irsModel.find({ ...param, ...params }, '-khs').limit(limit).skip(skip).sort(sort)
-    return new CoreResponseData(count, limit, response)
-  }
-
-  async findMhsKHS(q: Query, id: string) {
-    const filter = {
-      semester: Number,
-      sks: Number,
-    }
-
-    const { limit, skip, params, sort } = genParam(q, filter)
-    const { irs } = await this.mhsModel.findById(id)
-
-    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
-    console.log({ ...param, ...params })
-    const count = await this.irsModel.countDocuments({ ...param, ...params })
-    const query = await this.irsModel.find({ ...param, ...params }, '-fileURL').limit(limit).skip(skip).sort(sort)
-
-    const response = query.map(obj => flattenObject(obj))
-    return new CoreResponseData(count, limit, response)
-  }
-
-
-  //FIXME: return data with defined format that have currsks
-  async findMhsPKLById(id: string) {
-    const { pkl } = await this.mhsModel.findById(id, 'pkl -_id')
-    if (!pkl) return pkl
-    else return await this.pklModel.findById(pkl, '_id passed nilai fileURL lulusAt')
-  }
-
-  //FIXME: return data with defined format that have currsks
-  async findMhsSkripsiById(id: string) {
-    const { skripsi } = await this.mhsModel.findById(id)
-    if (!skripsi) return skripsi
-    else return await this.skripsiModel.findById(skripsi, '_id passed nilai fileURL lulusAt')
-  }
-
-  // async moveManyMhsToOtherDsn(dsnId: string, newDsnId: string) {
-  //   try {
-  //     const mhsToBeMoved = await this.mhsModel.find({
-  //       dosWal: new Types.ObjectId(dsnId),
-  //       status: { $in: [StatMhs.AKTIF, StatMhs.CUTI, StatMhs.MANGKIR] }
-  //     })
-
-  //     const mhsToBeMoved = await this.mhsModel.find({
-  //       dosWal: new Types.ObjectId(dsnId)
-  //     })
-
-  //     for (const mhs of mhsToBeMoved) {
-  //       mhs.doswal = new mongoose.Types.ObjectId(newDsnId)
-  //       await mhs.save();
-  //     }
-
-  //   } catch (err) {
-  //     throw new BadRequestException(`slebew ${err}`)
-  //   }
-  // }
 
   async updateIRSMhs(id: string, body: UpdateIRSDto) {
     const { fileURL, sks, semester } = body
@@ -407,6 +220,88 @@ export class MhsService {
     }
   }
 
+  // =========================================
+  // NOTE: FIND
+  // =========================================
+
+  // passed_skripsi=true
+  // verified_skripsi=Unverified (special case)
+  async listMhs(q: Query) {
+    const filter: Record<string, any> = {
+      YoE: Number,
+      AR: String,
+      status: String,
+      doswal: Object,
+      gender: String,
+      search: ['name', 'nim']
+    }
+
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const count = await this.mhsModel.countDocuments(params)
+    const query = await this.mhsModel.find(params, '-irs').populate('doswal', 'name _id').limit(limit).skip(skip).sort(sort)
+
+    const response = query.map(obj => flattenObject(obj))
+    return new CoreResponseData(count, limit, response)
+  }
+
+  async findMhs(id: string) {
+    const query = await this.mhsModel.findById(id, '-irs -khs -pkl -skripsi').populate('doswal', 'name _id')
+    return flattenObject(query)
+  }
+
+  async findMhsIRS(q: Query, id: string) {
+    const filter = {
+      status: String,
+      semester: Number,
+      sks: Number,
+    }
+
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const { irs } = await this.mhsModel.findById(id, 'irs -_id')
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
+    const count = await this.irsModel.countDocuments({ ...param, ...params })
+    const response = await this.irsModel.find({ ...param, ...params }, '-khs').limit(limit).skip(skip).sort(sort)
+    return new CoreResponseData(count, limit, response)
+  }
+
+  async findMhsKHS(q: Query, id: string) {
+    const filter = {
+      semester: Number,
+      sks: Number,
+    }
+
+    const { limit, skip, params, sort } = genParam(q, filter)
+    const { irs } = await this.mhsModel.findById(id)
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
+    console.log({ ...param, ...params })
+    const count = await this.irsModel.countDocuments({ ...param, ...params })
+    const query = await this.irsModel.find({ ...param, ...params }, '-fileURL -status -sks').limit(limit).skip(skip).sort(sort)
+
+    const response = query.map(obj => flattenObject(obj))
+    return new CoreResponseData(count, limit, response)
+  }
+
+
+  //FIXME: return data with defined format that have currsks
+  async findMhsPKLById(id: string) {
+    const { pkl } = await this.mhsModel.findById(id, 'pkl -_id')
+    if (!pkl) return pkl
+    else return await this.pklModel.findById(pkl, '_id passed nilai fileURL lulusAt')
+  }
+
+  //FIXME: return data with defined format that have currsks
+  async findMhsSkripsiById(id: string) {
+    const { skripsi } = await this.mhsModel.findById(id)
+    if (!skripsi) return skripsi
+    else return await this.skripsiModel.findById(skripsi, '_id passed nilai fileURL lulusAt')
+  }
+
+  // =========================================
+  // NOTE: VERIFY
+  // =========================================
+
   async verifyIRSMhs(id: string, body: VerifyIRSDto) {
     const { status, semester } = body
     const { irs } = await this.mhsModel.findById(id)
@@ -463,8 +358,9 @@ export class MhsService {
 
     return response
   }
-
-  //NOTE:
+  // =========================================
+  // NOTE: DELETE
+  // =========================================
   async deleteMhs(id: string) {
     await this.userService.deleteByUser(id)
     await this.userService.delete_sec(id)
@@ -497,6 +393,10 @@ export class MhsService {
     return response[0]?.totalSKS || 0
   }
 
+  // =========================================
+  // NOTE: ADDITIONAL FUNCTION
+  // =========================================
+
   private async parseCsvToJSON(file: Express.Multer.File): Promise<any[]> {
     const stream = toStream(file.buffer)
 
@@ -514,5 +414,108 @@ export class MhsService {
           reject(error);
         });
     });
+  }
+
+  private async statTotal(dosWal_id?: string) {
+    let coreQuery: PipelineStage[] = []
+    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
+
+    const response = await this.mhsModel.aggregate(coreQuery).sortByCount('status')
+    return response
+  }
+
+  private async statMhsBasedOnAR(dosWal_id?: string) {
+    let coreQuery: PipelineStage[] = []
+    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
+
+    return await this.mhsModel.aggregate(coreQuery).sortByCount('AR')
+  }
+
+  private async statSkripsiBasedOnYoE(dosWal_id?: string) {
+    let coreQuery: PipelineStage[] = [{
+      $group: {
+        _id: {
+          YoE: '$YoE',
+          status: { $cond: [{ $eq: ["$skripsi", null] }, "Taken", "Untaken"] },
+        },
+        count: { $count: {} }
+      }
+    }]
+
+    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
+
+    const response = await this.mhsModel.aggregate(coreQuery)
+    return response.map(x => flattenObject(x))
+  }
+
+  private async statPKLBasedOnYoE(dosWal_id?: string) {
+    let coreQuery: PipelineStage[] = [{
+      $group: {
+        _id: {
+          YoE: '$YoE',
+          status: { $cond: [{ $eq: ["$pkl", null] }, "Taken", "Untaken"] },
+        },
+        count: { $count: {} }
+      }
+    }]
+
+    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
+
+    const query = await this.mhsModel.aggregate(coreQuery)
+    const response = query.map(x => flattenObject(x))
+    return response
+  }
+
+  private async currSem(id: string) {
+    const { irs } = await this.mhsModel.findById(id)
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) }, status: StatAP.VERIFIED }
+    const count = await this.irsModel.countDocuments({ ...param })
+
+    return count || 0
+  }
+
+  async dashboard(user: UserEntity): Promise<any> {
+    const { sub, roles } = user;
+
+    // const statMhs = (roles === ROLE.DSN) ? await this.statTotal(sub) : await this.statTotal()
+    // const statPKL = (roles === ROLE.DSN) ? await this.statPKLBasedOnYoE(sub) : await this.statPKLBasedOnYoE()
+    // const statSkripsi = (roles === ROLE.DSN) ? await this.statSkripsiBasedOnYoE(sub) : await this.statSkripsiBasedOnYoE()
+    // const statMhsAR = (roles === ROLE.DSN) ? await this.statMhsBasedOnAR(sub) : await this.statMhsBasedOnAR()
+
+    const statMhs = await this.statTotal()
+    const statPKL = await this.statPKLBasedOnYoE()
+    const statSkripsi = await this.statSkripsiBasedOnYoE()
+    const statMhsAR = await this.statMhsBasedOnAR()
+
+    if (roles === ROLE.MHS) {
+      const currSKS = await this.currSKS(sub.toString()) //Current total SKS verified
+      const cummIPK = await this.cummIPK(sub.toString()) // cumulative IPK that verified
+      const user = await this.isExist(sub.toString())
+      const currSem = await this.currSem(sub.toString()) //active semester
+
+      return { user, currSem, currSKS, cummIPK }
+    } else if (roles === ROLE.DSN) {
+      const user = await this.dsnService.isExist(sub.toString())
+      return { user, statMhs, statMhsAR, statPKL, statSkripsi }
+    } else {
+      return { statMhs, statMhsAR, statPKL, statSkripsi }
+    }
+  }
+
+  private async cummIPK(id: string) {
+    const { irs } = await this.mhsModel.findById(id)
+    const response = await this.irsModel.aggregate([
+      { $match: { 
+        _id: { $in: irs.map(irsItem => irsItem) }, 
+        'khs.status': StatAP.VERIFIED 
+      }}, 
+      { $group: {
+        _id: null,
+        avgIPK: { $avg: "$khs.ipk" },
+        count: { $sum: 1 }
+      }}
+    ])
+    return response[0]?.avgIPK || 0
   }
 }

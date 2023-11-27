@@ -6,8 +6,6 @@ import { IS_PUBLIC_KEY } from 'src/auth/public.decorator';
 import { UserService } from 'src/user/user.service';
 import { AuthGuard } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
-import { ROLES_KEY } from './auth/roles.decorator';
-import { ROLE } from './../utils/global.enum'
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
@@ -16,9 +14,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         private userService: UserService,
         private reflector: Reflector,
         private jwtService: JwtService,
-    ) {
-        super()
-    }
+    ) { super() }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
         const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -32,9 +28,8 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
         if (!token) throw new UnauthorizedException('Login first')
 
         try {
-            const payload = this.jwtService.verify( token, { secret: this.config.get<string>('JWT_SECRET') })
-            //FIXME: fix this
-            const { role } = await this.userService.findUser(payload.sub)
+            const payload = this.jwtService.verify(token, { secret: this.config.get<string>('JWT_SECRET') })
+            const { role } = await this.userService.isExistByUser(payload.sub)
             request['user'] = { ...payload, roles: role }
         } catch (err) {
             throw new UnauthorizedException(`${err}`)

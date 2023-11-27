@@ -1,4 +1,4 @@
-import { faker } from '@faker-js/faker';
+import { faker, tr } from '@faker-js/faker';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
@@ -31,11 +31,23 @@ export class UserService {
   
   async delete_sec(id: string) { return await this.secDBModel.findOneAndDelete({ _id: new Types.ObjectId(id) }) }
   async isExist_sec(id: string) { return this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
-  async createUser_sec(id: Types.ObjectId, password: string, email?: string) { return await this.secDBModel.create({ _id: id, email, password }) }
+  async createUser_sec(id: Types.ObjectId, email: string, password: string) { return await this.secDBModel.create({ _id: id, email, password }) }
   async isExistByEmail_sec(email: string){ return await this.secDBModel.findOne({ email }) }
   async isExistById_sec(id: string){ return await this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
 
   async createUser_mhs(user: Types.ObjectId, password: any){ return await this.userModel.create({ user, password, role: ROLE.MHS}) }
+  async updateUser_mhs(id: string, email: string){
+    const update_user = await this.userModel.findOneAndUpdate(
+      { user: new Types.ObjectId(id) },
+      { email },
+      { new: true, runValidators: true }
+    )
+    const update_sec = await this.secDBModel.findOneAndUpdate(
+      { _id: new Types.ObjectId(id) },
+      { email },
+      { new: true, runValidators: true }
+    )
+  }
 
   async createUser(body: CreateUserDto) {
     const { name, noTelp, address, desc, email, role, user } = body
@@ -76,7 +88,6 @@ export class UserService {
     }
   }
 
-  // FIXME: query on populated field?
   async listUser(q: Query) {
     const filter: Record<string, any> = {
       role: String,
@@ -90,7 +101,6 @@ export class UserService {
     return new CoreResponseData(count, limit, response)
   }
 
-  // FIXME: validate user?
   async findUser(id: string) {
     const query = await this.userModel.findById(id).populate('user', '_id name noTelp address desc active status')
     if (!query) throw new BadRequestException(`Cant find User with ${id} IDs`)
@@ -103,6 +113,7 @@ export class UserService {
     if (!isExist) throw new BadRequestException(`Cant find User with ${id} IDs`)
 
     const { user, role } = await this.userModel.findByIdAndDelete(id)
+    console.log(typeof user)
     if (role == ROLE.ADM || role == ROLE.DEPT) await this.delete_sec(user.toString())
     if (role == ROLE.ADM) await this.admService.deleteAdmById(user.toString())
     else if (role == ROLE.DEPT) await this.deptService.deleteDeptById(user.toString())
@@ -113,11 +124,5 @@ export class UserService {
   async login(identifier: string){
     const query = await this.userModel.findOne({ email: identifier }, '+password').populate('user', 'name _id check')
     return flattenObject(query)
-  }
-
-  async debug(identifier: string){
-    return await this.userModel.aggregate([
-
-    ])
   }
 }

@@ -16,9 +16,8 @@ export class AppService {
   async signIn(body: LoginDto): Promise<any>{
     const { identifier, password } = body
     
-    // FIXME: using different 
-    const user = await this.userService.login(identifier)
-    // console.log(user)
+    const user: any = await this.userService.login(identifier)
+    console.log(user)
     // console.log(body)
     if(!Object.keys(user || {}).length) throw new UnauthorizedException('Invalid email or password')
     const isPasswordMatched = await bcrypt.compare(password, user.password)

@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from "@nestjs/mongoose";
 import { ObjectId, Types } from "mongoose";
-import { SEX, StatMhs, AR } from "../../../utils/global.enum";
+import { StatMhs } from "../../../utils/global.enum";
 
 @Schema({
   timestamps: true,
@@ -41,7 +41,7 @@ export class MHS {
 
   @Prop({
     default: null,
-    enum: Object.values(AR)
+    // enum: Object.values(AR)
   })
   AR: string;
 
@@ -79,7 +79,7 @@ export class MHS {
   skripsi: ObjectId;
 
   @Prop({
-    required: [true, 'PhotoURL required']
+    default: ""
   })
   photoURL: string
 

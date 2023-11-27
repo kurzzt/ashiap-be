@@ -16,22 +16,19 @@ export class User {
   user: ObjectId;
 
   @Prop({
-    // required: [true, 'Email Information required'],
-    // unique: [true, 'Email Already used']]
     default: null
   })
   email: string;
   
   @Prop({
-    // required: [true, 'Password Information required'],
-    default: null,
+    required: [true, 'Password Information required'],
     select : false
   })
   password: string;
 
   @Prop({
     required: [true, "Roles must be defined"],
-    enum: [ROLE.ADM, ROLE.DEPT, ROLE.DSN, ROLE.MHS]
+    enum: Object.values(ROLE)
   })
   role: string;
 }
