@@ -17,6 +17,11 @@ export class secDB {
   email: string;
 
   @Prop({
+    default: null
+  })
+  identity: string;
+
+  @Prop({
     required: [true, 'Password Information required']
   })
   password: string;

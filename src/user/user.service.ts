@@ -1,4 +1,4 @@
-import { faker, tr } from '@faker-js/faker';
+import { faker } from '@faker-js/faker';
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
@@ -27,16 +27,16 @@ export class UserService {
 
   async isExist(id: string) { return this.userModel.findById(id) }
   async isExistByUser(user: string) { return this.userModel.findOne({ user: new Types.ObjectId(user) }) }
-  async deleteByUser(user: string){ return await this.userModel.findOneAndDelete({ user: new Types.ObjectId(user) }) }
-  
+  async deleteByUser(user: string) { return await this.userModel.findOneAndDelete({ user: new Types.ObjectId(user) }) }
+
   async delete_sec(id: string) { return await this.secDBModel.findOneAndDelete({ _id: new Types.ObjectId(id) }) }
   async isExist_sec(id: string) { return this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
-  async createUser_sec(id: Types.ObjectId, email: string, password: string) { return await this.secDBModel.create({ _id: id, email, password }) }
-  async isExistByEmail_sec(email: string){ return await this.secDBModel.findOne({ email }) }
-  async isExistById_sec(id: string){ return await this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
+  async createUser_sec(id: Types.ObjectId, email: string, identity: string, password: string) { return await this.secDBModel.create({ _id: id, email, identity, password }) }
+  async isExistByEmail_sec(email: string) { return await this.secDBModel.findOne({ email }) }
+  async isExistById_sec(id: string) { return await this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
 
-  async createUser_mhs(user: Types.ObjectId, password: any){ return await this.userModel.create({ user, password, role: ROLE.MHS}) }
-  async updateUser_mhs(id: string, email: string){
+  async createUser_mhs(user: Types.ObjectId, identity: string, password: any) { return await this.userModel.create({ user, password, identity, role: ROLE.MHS }) }
+  async updateUser_mhs(id: string, email: string) {
     const update_user = await this.userModel.findOneAndUpdate(
       { user: new Types.ObjectId(id) },
       { email },
@@ -59,8 +59,8 @@ export class UserService {
     if (role == ROLE.ADM || role == ROLE.DEPT) {
       if (role == ROLE.ADM) createuser = await this.admService.createAdm({ name, noTelp, address, desc })
       else createuser = await this.deptService.createDept({ name, noTelp, address, desc })
-      
-      await this.createUser_sec(createuser._id, email, randomPass)
+
+      await this.createUser_sec(createuser._id, email, null, randomPass)
 
       await this.userModel.create({
         user: createuser._id,
@@ -80,6 +80,7 @@ export class UserService {
       createuser = await this.userModel.create({
         user: isExist_sec._id,
         email: isExist_sec.email,
+        identity: isExist_sec.identity,
         password: hashPass,
         role
       })
@@ -122,7 +123,7 @@ export class UserService {
   }
 
   async login(identifier: string){
-    const query = await this.userModel.findOne({ email: identifier }, '+password').populate('user', 'name _id check')
+    const query = await this.userModel.findOne({ $or: [{ email: identifier }, { identity: identifier }] }, '+password').populate('user', 'name _id check')
     return flattenObject(query)
   }
 }

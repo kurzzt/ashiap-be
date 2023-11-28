@@ -28,11 +28,11 @@ export class VerifyKHSDto {
 export class VerifyPKLDto {
   @IsNotEmpty()
   @IsIn([ StatAP.VERIFIED, StatAP.FAILED])
-  readonly isVerified: string
+  readonly verified: string
 }
 
 export class VerifySkripsiDto {
   @IsNotEmpty()
   @IsIn([ StatAP.VERIFIED, StatAP.FAILED])
-  readonly isVerified: string
+  readonly verified: string
 }

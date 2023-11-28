@@ -32,20 +32,7 @@ export class IRS {
   fileURL: string;
 
   @Prop({
-    type: { 
-      ipk: {
-        default: null,
-        type: Number
-      },
-      fileURL: {
-        default: "",
-        type: String
-      },
-      status: {
-        default: StatAP.NOT_UPLOADED,
-        type: String
-      }
-    },
+    type: { ipk: Number, fileURL: String, status: String },
     _id: false
   })
   khs: { ipk: number, fileURL: string, status: string };

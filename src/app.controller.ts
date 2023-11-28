@@ -1,4 +1,4 @@
-import { Body, Controller, Get, HttpStatus, ParseFilePipeBuilder, Post, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpStatus, ParseFilePipeBuilder, Post, Query, UploadedFile, UseInterceptors } from '@nestjs/common';
 import { AppService } from './app.service';
 import { TransformInterceptor } from 'utils/response.interceptor';
 import { LoginDto } from './auth/login.dto';
@@ -8,6 +8,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MhsService } from './mhs/mhs.service';
 import { User } from 'utils/user.decorator';
 import { UserEntity } from 'utils/globals';
+import { Query as ExpressQuery } from 'express-serve-static-core';
 
 @Controller()
 @UseInterceptors(TransformInterceptor)
@@ -23,7 +24,6 @@ export class AppController {
     return this.appService.getHello();
   }
 
-  //FIXME: LOGIN USING EMAIL AND NIM OR NIP
   @Public()
   @ResponseMessage('Logged In')
   @Post('login')
@@ -53,12 +53,35 @@ export class AppController {
     return this.appService.uploadSingleFile(file)
   }
 
-  // FIXME: DASHBOARD RETURN FIX VALUE WHEN TOTAL DOC 0 
   @Get('dashboard')
   @ResponseMessage('Dashboard')
   async dashboard(
     @User() user: UserEntity
   ){
-    return this.mhsService.dashboard(user)
+    return this.appService.dashboard(user)
+  }
+
+  @Get('rekap-pkl')
+  @ResponseMessage('Rekap PKL')
+  async rekapPKL(
+    @Query() q: ExpressQuery
+  ){
+    return this.appService.stat_rekap_pkl(q)
+  }
+
+  @Get('rekap-skripsi')
+  @ResponseMessage('Rekap Skripsi')
+  async rekapSkripsi(
+    @Query() q: ExpressQuery
+  ){
+    return this.appService.stat_rekap_skripsi(q)
+  }
+
+  @Get('rekap-status')
+  @ResponseMessage('Rekap Status')
+  async rekapStatus(
+    @Query() q: ExpressQuery
+  ){
+    return this.appService.stat_rekap_status(q)
   }
 }

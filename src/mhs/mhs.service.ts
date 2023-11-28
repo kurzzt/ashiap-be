@@ -3,12 +3,12 @@ import { BadRequestException, Injectable, NotFoundException } from '@nestjs/comm
 import { InjectModel } from '@nestjs/mongoose';
 import * as csv from 'csv-parser';
 import { Query } from 'express-serve-static-core';
-import { Model, PipelineStage, Types } from 'mongoose';
+import { Model } from 'mongoose';
 import { UserService } from 'src/user/user.service';
 import { CoreResponseData } from 'utils/CoreResponseData';
 import { flattenObject } from 'utils/common';
 import { genParam } from 'utils/filter';
-import { ROLE, StatAP } from 'utils/global.enum';
+import { StatAP, StatMhs } from 'utils/global.enum';
 import { CreateMhsDto } from './dto/create-mhs.dto';
 import { UpdateIRSDto, UpdateKHSDto } from './dto/update-irs-khs.dto';
 import { UpdateMhsDto } from './dto/update-mhs.dto';
@@ -56,26 +56,23 @@ export class MhsService {
   async createPKLMhs(id: string) {
     const { pkl } = await this.mhsModel.findById(id)
     if (pkl) throw new BadRequestException(`User with ${id} IDs already take PKL`)
-    // FIXME: dont send throw new error, send data with defined format
     const haveRights = await this.currSKS(id)
     if (haveRights < 100) throw new BadRequestException(`You can't' take the PKL. Your SKS are below 100, namely ${haveRights}`)
 
     const { _id } = await this.pklModel.create({})
-    const data = await this.mhsModel.findByIdAndUpdate(id, { pkl: _id }, { new: true, runValidators: true })
-    return { haveRights: !!(haveRights < 100), data }
+    const reponse = await this.mhsModel.findByIdAndUpdate(id, { pkl: _id }, { new: true, runValidators: true })
+    return reponse
   }
 
   async createSkripsiMhs(id: string) {
     const { skripsi } = await this.mhsModel.findById(id)
     if (skripsi) throw new BadRequestException(`User with ${id} IDs already take Skripsi`)
-
-    // FIXME: dont send throw new error, send data with defined format
     const haveRights = await this.currSKS(id)
     if (haveRights < 120) throw new BadRequestException(`You can't' take the Skripsi. Your SKS are below 120, namely ${haveRights}`)
 
     const { _id } = await this.skripsiModel.create({})
-    const data = await this.mhsModel.findByIdAndUpdate(id, { skripsi: _id }, { new: true, runValidators: true })
-    return { haveRights: !!(haveRights < 120), data }
+    const reponse = await this.mhsModel.findByIdAndUpdate(id, { skripsi: _id }, { new: true, runValidators: true })
+    return reponse
   }
 
   async createMhs(mhs: CreateMhsDto) {
@@ -98,8 +95,8 @@ export class MhsService {
 
     const randomPass = faker.internet.password({ length: 12 })
     const hashPass = await bcrypt.hash(randomPass, 10)
-    await this.userService.createUser_sec(createMhs._id, "", randomPass)
-    await this.userService.createUser_mhs(createMhs._id, hashPass)
+    await this.userService.createUser_sec(createMhs._id, "", nim, randomPass)
+    await this.userService.createUser_mhs(createMhs._id, nim, hashPass)
 
     return createMhs
   }
@@ -181,19 +178,17 @@ export class MhsService {
     return response
   }
 
-  //FIXME: isverified flow
   async updatePKL(id: string, body: UpdatePKLDto) {
     const { pkl } = await this.mhsModel.findById(id)
     if (!pkl) throw new BadRequestException(`User with ${id} IDs hasn't yet taken the PKL`)
 
     let response: Object
     if (body.passed) {
+      const { passed, nilai, fileURL, lulusAt } = body
       response = await this.pklModel.findByIdAndUpdate(pkl.toString(), {
-        passed: true,
-        nilai: body.nilai,
-        fileURL: body.fileURL.preview,
-        lulusAt: new Date(),
-        isVerified: false,
+        passed, nilai, lulusAt,
+        fileURL: fileURL.preview,
+        lamastudi: this.currSem(id)
       }, { new: true, runValidators: true })
       return response
     } else {
@@ -202,7 +197,6 @@ export class MhsService {
     }
   }
 
-  //FIXME: isverified flow
   async updateSkripsi(id: string, body: UpdateSkripsiDto) {
     const { skripsi } = await this.mhsModel.findById(id)
     if (!skripsi) throw new BadRequestException(`User with ${id} IDs hasn't yet taken the Skripsi`)
@@ -212,7 +206,8 @@ export class MhsService {
       const { passed, nilai, lulusAt, fileURL } = body
       const response = await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), {
         passed, nilai, lulusAt,
-        fileURL: body.fileURL.preview,
+        fileURL: fileURL.preview,
+        lamastudi: this.currSem(id)
       }, { new: true, runValidators: true })
       return response
     } else {
@@ -283,19 +278,49 @@ export class MhsService {
     return new CoreResponseData(count, limit, response)
   }
 
-
-  //FIXME: return data with defined format that have currsks
   async findMhsPKLById(id: string) {
-    const { pkl } = await this.mhsModel.findById(id, 'pkl -_id')
-    if (!pkl) return pkl
-    else return await this.pklModel.findById(pkl, '_id passed nilai fileURL lulusAt')
+    const sks = await this.currSKS(id)
+    const { pkl } = await this.mhsModel.findById(id)
+    let data = null
+    if(pkl) data = await this.pklModel.findById(pkl)
+
+    return { data, sks }
   }
 
-  //FIXME: return data with defined format that have currsks
   async findMhsSkripsiById(id: string) {
+    const sks = await this.currSKS(id)
     const { skripsi } = await this.mhsModel.findById(id)
-    if (!skripsi) return skripsi
-    else return await this.skripsiModel.findById(skripsi, '_id passed nilai fileURL lulusAt')
+    let data = null
+    if(skripsi) data = await this.skripsiModel.findById(skripsi)
+    
+    return { data, sks }
+  }
+  
+  async findMhsOverviewById(id:string){
+    const { irs, pkl, skripsi } = await this.mhsModel.findById(id)
+
+    const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
+    const irsmhs = await this.irsModel.find(param)
+    const pklmhs = await this.pklModel.findById(pkl)
+    const skripsimhs = await this.skripsiModel.findById(skripsi)
+
+    let response = []
+    for (let i = 1; i < 15; i++) {
+      const virs = (irsmhs[i-1].status == 'Verified') ? true : false
+      const vkhs = (irsmhs[i-1].khs.status == 'Verified') ? true : false
+      const vpkl = (pklmhs?.lamastudi == i && pklmhs?.verified == 'Verified') ? true : false 
+      const vskripsi = (skripsimhs?.lamastudi == i && skripsimhs?.verified == 'Verified') ? true : false 
+      const data = {
+        semester: i,
+        irs: virs,
+        khs: vkhs,
+        pkl: vpkl,
+        skripsi: vskripsi
+      }
+      response.push(data)
+    }
+
+    return response
   }
 
   // =========================================
@@ -305,6 +330,7 @@ export class MhsService {
   async verifyIRSMhs(id: string, body: VerifyIRSDto) {
     const { status, semester } = body
     const { irs } = await this.mhsModel.findById(id)
+
     const response = await this.irsModel.findByIdAndUpdate(
       irs[semester - 1].toString(),
       {
@@ -335,10 +361,10 @@ export class MhsService {
     const { pkl } = await this.mhsModel.findById(id)
     if (!pkl) throw new BadRequestException(`User with ${id} IDs hasn't yet taken the PKL`)
 
-    const { isVerified } = body
+    const { verified } = body
     const response = await this.pklModel.findByIdAndUpdate(
       pkl.toString(),
-      { isVerified },
+      { verified },
       { new: true, runValidators: true }
     )
 
@@ -349,10 +375,10 @@ export class MhsService {
     const { skripsi } = await this.mhsModel.findById(id)
     if (!skripsi) throw new BadRequestException(`User with ${id} IDs hasn't yet taken the Skripsi`)
 
-    const { isVerified } = body
+    const { verified } = body
     const response = await this.skripsiModel.findByIdAndUpdate(
       skripsi.toString(),
-      { isVerified },
+      { verified },
       { new: true, runValidators: true }
     )
 
@@ -375,27 +401,25 @@ export class MhsService {
     return mhs
   }
 
-  private async currSKS(id: string) {
-    const { irs } = await this.mhsModel.findById(id)
-    const response = await this.irsModel.aggregate([{
-      $match: {
-        _id: { $in: irs.map(irsItem => irsItem) },
-        status: StatAP.VERIFIED
-      }
-    }, {
-      $group: {
-        _id: null,
-        totalSKS: { $sum: "$sks" },
-        count: { $sum: 1 }
-      }
-    }])
-
-    return response[0]?.totalSKS || 0
-  }
-
   // =========================================
   // NOTE: ADDITIONAL FUNCTION
   // =========================================
+
+  async currSKS(id: string) {
+    const { irs } = await this.mhsModel.findById(id)
+    const response = await this.irsModel.aggregate([
+      { $match: {
+        _id: { $in: irs.map(irsItem => irsItem) },
+        status: StatAP.VERIFIED
+      }}, 
+      { $group: {
+        _id: null,
+        totalSKS: { $sum: "$sks" },
+        count: { $sum: 1 }
+      }}
+    ])
+    return response[0]?.totalSKS || 0
+  }
 
   private async parseCsvToJSON(file: Express.Multer.File): Promise<any[]> {
     const stream = toStream(file.buffer)
@@ -416,57 +440,100 @@ export class MhsService {
     });
   }
 
-  private async statTotal(dosWal_id?: string) {
-    let coreQuery: PipelineStage[] = []
-    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
+  async stat_status() {
+    return await this.mhsModel.aggregate([
+      { $group: {
+        _id: '$status',
+        count: { $count : {} }
+      }},
+      { $project: {
+        _id: 0,
+        status: '$_id',
+        count: '$count'
+      }}
+    ])
+  }
 
-    const response = await this.mhsModel.aggregate(coreQuery).sortByCount('status')
+  async stat_AR() {
+    return await this.mhsModel.aggregate([
+      { $group: {
+        _id: '$AR',
+        count: { $count : {} }
+      }},
+      { $project: {
+        _id: 0,
+        jalur: '$_id',
+        count: '$count'
+      }}
+    ])
+  }
+
+  async statSkripsiBasedOnYoE(dosWal_id?: string) {
+    return await this.mhsModel.aggregate([
+      { $group: {
+          _id: {
+            YoE: '$YoE',
+            status: { $cond: [{ $eq: ["$skripsi", null] }, "Taken", "Untaken"] } },
+          count: { $count: {} } 
+      }}, 
+      { $project: {
+        _id: 0,
+        angkatan: '$_id.YoE',
+        status: '$_id.status',
+        count: '$count'
+      }}
+    ])
+  }
+
+  async statPKLBasedOnYoE() {
+    return await this.mhsModel.aggregate([
+      { $group: {
+          _id: {
+            YoE: '$YoE',
+            status: { $cond: [{ $eq: ["$pkl", null] }, "Taken", "Untaken"] } },
+          count: { $count: {} } 
+      }}, 
+      { $project: {
+        _id: 0,
+        angkatan: '$_id.YoE',
+        status: '$_id.status',
+        count: '$count'
+      }}
+    ])
+  }
+
+  async stat_rekap_status(q: Query) {
+    const res = await this.mhsModel.aggregate([
+      { $group: {
+          _id: {
+            YoE: '$YoE',
+            status: '$status' },
+          count: { $count: {} } 
+      }}, 
+      { $project: {
+        _id: 0,
+        angkatan: '$_id.YoE',
+        status: '$_id.status',
+        count: '$count'
+      }}
+    ])
+
+    const start_date= Number((q.start_date as string)?.substring(0,4)) || new Date().getFullYear() - 7
+    const end_date= Number((q.end_date as string)?.substring(0,4)) || new Date().getFullYear()
+    let response = {}
+    const status = Object.values(StatMhs)
+
+    for(let i = start_date; i<=end_date; i++){
+      response[i] = {}
+      status.forEach(stat => {
+        const x = res.find(item => item.angkatan === i && item.status === stat)
+        response[i][stat] = x?.count ?? 0;
+      })
+    }
     return response
   }
 
-  private async statMhsBasedOnAR(dosWal_id?: string) {
-    let coreQuery: PipelineStage[] = []
-    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-    return await this.mhsModel.aggregate(coreQuery).sortByCount('AR')
-  }
-
-  private async statSkripsiBasedOnYoE(dosWal_id?: string) {
-    let coreQuery: PipelineStage[] = [{
-      $group: {
-        _id: {
-          YoE: '$YoE',
-          status: { $cond: [{ $eq: ["$skripsi", null] }, "Taken", "Untaken"] },
-        },
-        count: { $count: {} }
-      }
-    }]
-
-    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-    const response = await this.mhsModel.aggregate(coreQuery)
-    return response.map(x => flattenObject(x))
-  }
-
-  private async statPKLBasedOnYoE(dosWal_id?: string) {
-    let coreQuery: PipelineStage[] = [{
-      $group: {
-        _id: {
-          YoE: '$YoE',
-          status: { $cond: [{ $eq: ["$pkl", null] }, "Taken", "Untaken"] },
-        },
-        count: { $count: {} }
-      }
-    }]
-
-    if (dosWal_id) { coreQuery.unshift({ $match: { dosWal: new Types.ObjectId(dosWal_id) } }) }
-
-    const query = await this.mhsModel.aggregate(coreQuery)
-    const response = query.map(x => flattenObject(x))
-    return response
-  }
-
-  private async currSem(id: string) {
+  async currSem(id: string) {
     const { irs } = await this.mhsModel.findById(id)
 
     const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) }, status: StatAP.VERIFIED }
@@ -476,34 +543,10 @@ export class MhsService {
   }
 
   async dashboard(user: UserEntity): Promise<any> {
-    const { sub, roles } = user;
-
-    // const statMhs = (roles === ROLE.DSN) ? await this.statTotal(sub) : await this.statTotal()
-    // const statPKL = (roles === ROLE.DSN) ? await this.statPKLBasedOnYoE(sub) : await this.statPKLBasedOnYoE()
-    // const statSkripsi = (roles === ROLE.DSN) ? await this.statSkripsiBasedOnYoE(sub) : await this.statSkripsiBasedOnYoE()
-    // const statMhsAR = (roles === ROLE.DSN) ? await this.statMhsBasedOnAR(sub) : await this.statMhsBasedOnAR()
-
-    const statMhs = await this.statTotal()
-    const statPKL = await this.statPKLBasedOnYoE()
-    const statSkripsi = await this.statSkripsiBasedOnYoE()
-    const statMhsAR = await this.statMhsBasedOnAR()
-
-    if (roles === ROLE.MHS) {
-      const currSKS = await this.currSKS(sub.toString()) //Current total SKS verified
-      const cummIPK = await this.cummIPK(sub.toString()) // cumulative IPK that verified
-      const user = await this.isExist(sub.toString())
-      const currSem = await this.currSem(sub.toString()) //active semester
-
-      return { user, currSem, currSKS, cummIPK }
-    } else if (roles === ROLE.DSN) {
-      const user = await this.dsnService.isExist(sub.toString())
-      return { user, statMhs, statMhsAR, statPKL, statSkripsi }
-    } else {
-      return { statMhs, statMhsAR, statPKL, statSkripsi }
-    }
+    
   }
 
-  private async cummIPK(id: string) {
+  async cummIPK(id: string) {
     const { irs } = await this.mhsModel.findById(id)
     const response = await this.irsModel.aggregate([
       { $match: { 
@@ -517,5 +560,22 @@ export class MhsService {
       }}
     ])
     return response[0]?.avgIPK || 0
+  }
+
+  async stat_rekap(q: Query, res: any){
+    console.log(q)
+    const start_date= Number((q.start_date as string)?.substring(0,4)) || new Date().getFullYear() - 7
+    const end_date= Number((q.end_date as string)?.substring(0,4)) || new Date().getFullYear()
+    let response = {}
+    
+    for(let i = start_date; i<=end_date; i++){
+      const untakenData = res.find(item => item.angkatan === i && item.status === 'Untaken')
+      const takenData = res.find(item => item.angkatan === i && item.status === 'Taken')
+      response[i] = {
+        'Taken': untakenData?.count ?? 0,
+        'Untaken': takenData?.count ?? 0
+      }
+    }
+    return response
   }
 }

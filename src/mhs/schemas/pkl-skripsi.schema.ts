@@ -35,7 +35,7 @@ export class PKL {
     default: StatAP.UNVERIFIED,
     enum: Object.values(StatAP)
   })
-  isVerified: string;
+  verified: string;
 }
 
 export const PKLSchema = SchemaFactory.createForClass(PKL)
@@ -74,7 +74,7 @@ export class Skripsi {
     default: StatAP.UNVERIFIED,
     enum: Object.values(StatAP)
   })
-  isVerified: string;
+  verified: string;
 }
 
 export const SkripsiSchema = SchemaFactory.createForClass(Skripsi)

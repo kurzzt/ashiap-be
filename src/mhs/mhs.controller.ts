@@ -96,7 +96,6 @@ export class MhsController {
     return this.mhsService.findMhsKHS(q, id)
   }
 
-  //FIXME: return data with defined format that have currsks
   @Get(':id/pkl')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data PKL of Specific Mahasiswa IDs')
@@ -106,7 +105,6 @@ export class MhsController {
     return this.mhsService.findMhsPKLById(id)
   }
 
-  //FIXME: return data with defined format that have currsks
   @Get(':id/skripsi')
   @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Get Data Skripsi of Specific Mahasiswa IDs')
@@ -116,7 +114,15 @@ export class MhsController {
     return this.mhsService.findMhsSkripsiById(id)
   }
 
-  //FIXME: dont send throw new error, send data with defined format
+  @Get(':id/overview')
+  @Roles(ROLE.DEPT, ROLE.DSN, ROLE.MHS)
+  @ResponseMessage('Successfully Get Data Overview of Specific Mahasiswa IDs')
+  async findOverview(
+    @Param('id', ValidateMhsParamId) id: string,
+  ) {
+    return this.mhsService.findMhsOverviewById(id)
+  }
+
   @Post(':id/pkl')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take PKL')
@@ -126,7 +132,6 @@ export class MhsController {
     return this.mhsService.createPKLMhs(id)
   }
 
-  //FIXME: dont send throw new error, send data with defined format
   @Post(':id/skripsi')
   @Roles(ROLE.MHS)
   @ResponseMessage('Successfully Take Skripsi')
@@ -156,7 +161,6 @@ export class MhsController {
     return this.mhsService.updateKHSMhs(id, body)
   }
 
-  //FIXME: isverified flow
   @Put(':id/pkl')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data PKL')
@@ -167,7 +171,6 @@ export class MhsController {
     return this.mhsService.updatePKL(id, body);
   }
 
-  //FIXME: isverified flow
   @Put(':id/skripsi')
   @Roles(ROLE.DSN, ROLE.MHS)
   @ResponseMessage('Successfully Update Data Skripsi')

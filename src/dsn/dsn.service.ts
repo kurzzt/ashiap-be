@@ -32,7 +32,7 @@ export class DsnService {
     })
 
     const randomPass = faker.internet.password({ length: 12 })
-    await this.userService.createUser_sec(createDsn._id, email, randomPass)
+    await this.userService.createUser_sec(createDsn._id, email, nip, randomPass)
     return createDsn
   }
 

@@ -19,6 +19,11 @@ export class User {
     default: null
   })
   email: string;
+
+  @Prop({
+    default: null
+  })
+  identity: string;
   
   @Prop({
     required: [true, 'Password Information required'],
