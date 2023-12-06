@@ -6,7 +6,7 @@ import { Query } from 'express-serve-static-core';
 import { Model } from 'mongoose';
 import { UserService } from 'src/user/user.service';
 import { CoreResponseData } from 'utils/CoreResponseData';
-import { flattenObject } from 'utils/common';
+import { defpass, flattenObject } from 'utils/common';
 import { genParam } from 'utils/filter';
 import { StatAP, StatMhs } from 'utils/global.enum';
 import { CreateMhsDto } from './dto/create-mhs.dto';
@@ -93,7 +93,8 @@ export class MhsService {
       doswal: validateDosWal._id
     })
 
-    const randomPass = faker.internet.password({ length: 12 })
+    // const randomPass = faker.internet.password({ length: 12 })
+    const randomPass = defpass
     const hashPass = await bcrypt.hash(randomPass, 10)
     await this.userService.createUser_sec(createMhs._id, "", nim, randomPass)
     await this.userService.createUser_mhs(createMhs._id, nim, hashPass)
@@ -132,7 +133,7 @@ export class MhsService {
   // =========================================
 
   async updateMhs(id: string, body: UpdateMhsDto) {
-    const { email, AR, gender, address, province, noTelp, photoURL } = body
+    const { email, AR, gender, address, province, noTelp, photoURL, password } = body
     const response = await this.mhsModel.findByIdAndUpdate(
       id,
       {
@@ -142,7 +143,8 @@ export class MhsService {
       }, { new: true, runValidators: true }
     )
 
-    await this.userService.updateUser_mhs((response._id).toString(), email)
+    const hashPass = await bcrypt.hash(password, 10)
+    await this.userService.updateUser_mhs((response._id).toString(), email, password, hashPass)
     return response
   }
 
@@ -162,14 +164,14 @@ export class MhsService {
   }
 
   async updateKHSMhs(id: string, body: UpdateKHSDto) {
-    const { fileURL, ipk, semester } = body
+    const { fileURL, khsIpk, semester } = body
     const { irs } = await this.mhsModel.findById(id)
     const response = await this.irsModel.findByIdAndUpdate(
       irs[semester - 1].toString(),
       {
         $set: {
           'khs.status': StatAP.UNVERIFIED,
-          'khs.ipk': ipk,
+          'khs.ipk': khsIpk,
           'khs.fileURL': fileURL.preview
         }
       }, { new: true, runValidators: true }
@@ -186,13 +188,21 @@ export class MhsService {
     if (body.passed) {
       const { passed, nilai, fileURL, lulusAt } = body
       response = await this.pklModel.findByIdAndUpdate(pkl.toString(), {
-        passed, nilai, lulusAt,
+        passed, nilai, 
+        lulusAt: new Date(lulusAt),
         fileURL: fileURL.preview,
-        lamastudi: this.currSem(id)
+        lamastudi: await this.currSem(id),
+        verified: StatAP.UNVERIFIED
       }, { new: true, runValidators: true })
       return response
     } else {
-      const response = await this.pklModel.findByIdAndUpdate(pkl.toString(), { passed: false }, { new: true, runValidators: true })
+      const { passed, nilai, fileURL } = body
+      const response = await this.pklModel.findByIdAndUpdate(pkl.toString(), { 
+        passed, nilai,
+        fileURL: fileURL.preview,
+        lamastudi: await this.currSem(id),
+        verified: StatAP.UNVERIFIED
+      }, { new: true, runValidators: true })
       return response
     }
   }
@@ -205,13 +215,21 @@ export class MhsService {
     if (passed) {
       const { passed, nilai, lulusAt, fileURL } = body
       const response = await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), {
-        passed, nilai, lulusAt,
+        passed, nilai, 
+        lulusAt: new Date(lulusAt),
         fileURL: fileURL.preview,
-        lamastudi: this.currSem(id)
+        lamastudi: await this.currSem(id),
+        verified: StatAP.UNVERIFIED
       }, { new: true, runValidators: true })
       return response
     } else {
-      return await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), { passed: false }, { new: true, runValidators: true })
+      const { passed, nilai, fileURL } = body
+      return await this.skripsiModel.findByIdAndUpdate(skripsi.toString(), { 
+        passed, nilai,
+        fileURL: fileURL.preview,
+        lamastudi: await this.currSem(id),
+        verified: StatAP.UNVERIFIED
+      }, { new: true, runValidators: true })
     }
   }
 
@@ -272,9 +290,18 @@ export class MhsService {
     const param = { _id: { $in: irs.map(irsItem => irsItem.toString()) } }
     console.log({ ...param, ...params })
     const count = await this.irsModel.countDocuments({ ...param, ...params })
-    const query = await this.irsModel.find({ ...param, ...params }, '-fileURL -status -sks').limit(limit).skip(skip).sort(sort)
+    const query = await this.irsModel.find({ ...param, ...params }, '-fileURL -status').limit(limit).skip(skip).sort(sort).lean()
 
-    const response = query.map(obj => flattenObject(obj))
+    let sksk = 0, ipk = 0
+    const addfield = query.map((x, i) => {
+      console.log(i)
+      sksk += x.sks || 0
+      ipk += x.khs.ipk || 0
+      return {
+        ...x, sksk, ipk: parseFloat((ipk/(i+1)).toFixed(2)) // Assigning cumulative sks to each document
+      };
+    })
+    const response = addfield.map(obj => flattenObject(obj))
     return new CoreResponseData(count, limit, response)
   }
 
@@ -410,7 +437,7 @@ export class MhsService {
     const response = await this.irsModel.aggregate([
       { $match: {
         _id: { $in: irs.map(irsItem => irsItem) },
-        status: StatAP.VERIFIED
+        'khs.status': StatAP.VERIFIED
       }}, 
       { $group: {
         _id: null,
@@ -518,8 +545,8 @@ export class MhsService {
       }}
     ])
 
-    const start_date= Number((q.start_date as string)?.substring(0,4)) || new Date().getFullYear() - 7
-    const end_date= Number((q.end_date as string)?.substring(0,4)) || new Date().getFullYear()
+    const start_date= Number(q.start_date) || new Date().getFullYear() - 7
+    const end_date= Number(q.end_date) || new Date().getFullYear()
     let response = {}
     const status = Object.values(StatMhs)
 
@@ -564,8 +591,8 @@ export class MhsService {
 
   async stat_rekap(q: Query, res: any){
     console.log(q)
-    const start_date= Number((q.start_date as string)?.substring(0,4)) || new Date().getFullYear() - 7
-    const end_date= Number((q.end_date as string)?.substring(0,4)) || new Date().getFullYear()
+    const start_date= Number(q.start_date) || new Date().getFullYear() - 7
+    const end_date= Number(q.end_date) || new Date().getFullYear()
     let response = {}
     
     for(let i = start_date; i<=end_date; i++){

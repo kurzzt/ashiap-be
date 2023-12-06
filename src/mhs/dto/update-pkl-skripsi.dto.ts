@@ -1,4 +1,4 @@
-import { IsBoolean, IsDate, IsNotEmpty, IsNumber, IsObject, Max, Min, ValidateIf } from "class-validator";
+import { IsBoolean, IsDateString, IsNotEmpty, IsNumber, IsObject, Max, Min, ValidateIf } from "class-validator";
 import { FileObject } from "utils/globals";
 
 export class UpdatePKLDto {
@@ -6,7 +6,6 @@ export class UpdatePKLDto {
   @IsBoolean()
   readonly passed: boolean
 
-  @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
@@ -15,10 +14,9 @@ export class UpdatePKLDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  @IsDate()
+  @IsDateString()
   readonly lulusAt: Date
 
-  @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
   @IsObject()
   readonly fileURL: FileObject
@@ -29,7 +27,6 @@ export class UpdateSkripsiDto {
   @IsBoolean()
   readonly passed: boolean
 
-  @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
@@ -38,10 +35,9 @@ export class UpdateSkripsiDto {
 
   @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
-  @IsDate()
+  @IsDateString()
   readonly lulusAt: Date
 
-  @ValidateIf(o => o.passed == true)
   @IsNotEmpty()
   @IsObject()
   readonly fileURL: FileObject

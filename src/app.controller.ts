@@ -43,7 +43,7 @@ export class AppController {
           fileType: new RegExp(/(jpg|jpeg|png)$/),
         })
         .addMaxSizeValidator({
-          maxSize: 10000000 //bytes
+          maxSize: 50000000 //bit
         })
         .build({
           errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY

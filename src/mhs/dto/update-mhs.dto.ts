@@ -1,4 +1,4 @@
-import { IsDefined, IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsObject, IsString } from "class-validator";
+import { IsDefined, IsEmail, IsEnum, IsMobilePhone, IsNotEmpty, IsObject, IsString, MinLength } from "class-validator";
 import { AR, SEX } from "../../../utils/global.enum";
 import { FileObject } from "utils/globals";
 import { IsEmailUnique } from "utils/uniqueMail.decorator";
@@ -32,4 +32,8 @@ export class UpdateMhsDto {
   @IsNotEmpty()
   @IsObject()
   readonly photoURL: FileObject
+  
+  @IsNotEmpty()
+  @MinLength(12)
+  readonly password: string
 }

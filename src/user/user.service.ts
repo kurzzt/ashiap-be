@@ -35,16 +35,16 @@ export class UserService {
   async isExistByEmail_sec(email: string) { return await this.secDBModel.findOne({ email }) }
   async isExistById_sec(id: string) { return await this.secDBModel.findOne({ _id: new Types.ObjectId(id) }) }
 
-  async createUser_mhs(user: Types.ObjectId, identity: string, password: any) { return await this.userModel.create({ user, password, identity, role: ROLE.MHS }) }
-  async updateUser_mhs(id: string, email: string) {
+  async createUser_mhs(user: Types.ObjectId, identity: string, password: string) { return await this.userModel.create({ user, password, identity, role: ROLE.MHS }) }
+  async updateUser_mhs(id: string, email: string, password: string, hashPass: any) {
     const update_user = await this.userModel.findOneAndUpdate(
       { user: new Types.ObjectId(id) },
-      { email },
+      { email, password: hashPass },
       { new: true, runValidators: true }
     )
     const update_sec = await this.secDBModel.findOneAndUpdate(
       { _id: new Types.ObjectId(id) },
-      { email },
+      { email, password },
       { new: true, runValidators: true }
     )
   }

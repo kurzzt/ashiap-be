@@ -5,7 +5,7 @@ export function genParam(q: Query, filter?: Record<string, any>):Record<string, 
   const limit = Number(q.limit) || 10
   const page = Number(q.page) || 1
   const skip = limit * (page - 1)
-  const sort = (q.sort_by) ? { [<string>q?.sort_by] : (q.sort === "desc") ? -1 : 1 , _id: 1 } : {}
+  const sort = (q.sort_by) ? { [<string>q?.sort_by] : (q.sort === "desc") ? -1 : 1 , _id: 1 } : { _id: 1 }
 
   const params =  Object.keys(q).reduce((res, key) => { 
     if (filter?.hasOwnProperty(key)) {

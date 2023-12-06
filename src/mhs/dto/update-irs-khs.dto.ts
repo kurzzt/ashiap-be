@@ -34,5 +34,5 @@ export class UpdateKHSDto {
   @IsNumber()
   @Min(0)
   @Max(4)
-  readonly ipk: number
+  readonly khsIpk: number
 }

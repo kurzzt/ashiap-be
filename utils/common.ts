@@ -15,3 +15,5 @@ export const flattenObject = (obj: Record<string, any>, prefix = '') => {
 
   return flattened
 }
+
+export const defpass = 'defaultpassword'
